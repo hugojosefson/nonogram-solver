@@ -1,6 +1,14 @@
+import parse2Lines from './parse-2-lines'
+
 export default input => {
-  if (typeof input === 'undefined') {
-    throw new Error('No input supplied.')
+  if (typeof input !== 'string') {
+    throw new Error('Input must be a string.')
   }
-  throw new Error('Not implemented.')
+
+  const lines = input.trim().split('\n')
+  if (lines.length === 2) {
+    return parse2Lines(lines)
+  }
+
+  throw new Error('Input must be 2 lines of text.')
 }
