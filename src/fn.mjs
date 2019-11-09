@@ -1,4 +1,7 @@
 export const first = array => array[0]
 
-export const width = hintsOrGrid => first(hintsOrGrid).length
-export const height = hintsOrGrid => hintsOrGrid.length
+export const widthOfGrid = grid => first(grid).length
+export const heightOfGrid = grid => grid.length
+
+export const widthOfHints = ([horizontalHints, verticalHints]) => horizontalHints.length
+export const heightOfHints = ([horizontalHints, verticalHints]) => verticalHints.length

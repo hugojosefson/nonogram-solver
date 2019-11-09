@@ -1,3 +1,5 @@
+import { heightOfHints, widthOfHints } from './fn'
+
 const grid = (width, height = width) =>
   Array.from(
     { length: height },
@@ -5,4 +7,4 @@ const grid = (width, height = width) =>
   )
 export default grid
 
-export const fromHints = ([horizontalHints, verticalHints]) => grid(horizontalHints.length, verticalHints.length)
+export const fromHints = hints => grid(widthOfHints(hints), heightOfHints(hints))
