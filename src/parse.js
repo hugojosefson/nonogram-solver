@@ -1,4 +1,4 @@
-import parse2Lines from './parse-2-lines'
+import parse2LinesOfHints from './parse-2-lines-of-hints'
 
 export default input => {
   if (typeof input !== 'string') {
@@ -10,8 +10,8 @@ export default input => {
     .map(line => line.trim())
     .filter(line => line.length)
   if (lines.length === 2) {
-    return parse2Lines(lines)
+    return parse2LinesOfHints(lines)
   }
 
-  throw new Error('Input must be 2 lines of text.')
+  throw new Error('Input must be 2 lines of hints.')
 }
