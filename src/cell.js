@@ -1,6 +1,8 @@
-export const FILLED = Symbol('▮')
-export const EMPTY = Symbol(' ')
+import { s } from './fn'
 
-export const isFilled = cell => cell === FILLED
-export const isEmpty = cell => cell === EMPTY
-export const isUndefined = cell => typeof cell === 'undefined'
+export const FILLED = Symbol('▮')
+export const CLEAR = Symbol('.')
+export const UNKNOWN = Symbol(' ')
+
+export const displayCell = cell => Number.isInteger(cell) ? cell : cell.description
+export const displayLine = line => s(line.map(displayCell).join(''))

@@ -1,4 +1,4 @@
-import parse1LineOfHints from './parse-1-line-of-hints'
+import parse1LineOfHints from './parse-1-input-line-of-hints'
 
 export default input => {
   if (typeof input !== 'string') {

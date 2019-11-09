@@ -1,9 +1,10 @@
-import { heightOfHints, widthOfHints } from './fn'
+import { heightOfHints, repeat, widthOfHints } from './fn'
+import { UNKNOWN } from './cell'
 
 const grid = (width, height = width) =>
   Array.from(
     { length: height },
-    () => Array.from({ length: width })
+    () => repeat(width, UNKNOWN)
   )
 export default grid
 
