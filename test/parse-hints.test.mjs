@@ -66,4 +66,12 @@ ${INPUT_LINE_TWO}
       `)
     }, Error)
   })
+
+  it('should throw an Error when called with no hints', () => {
+    assert.throws(() => {
+      parseHints(`
+      # no hints here!
+      `)
+    }, Error)
+  })
 })
