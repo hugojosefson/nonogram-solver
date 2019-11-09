@@ -6,6 +6,9 @@ export default input => {
   }
 
   const lines = input.trim().split('\n')
+    .map(line => line.replace(/#.*/g, ''))
+    .map(line => line.trim())
+    .filter(line => line.length)
   if (lines.length === 2) {
     return parse2Lines(lines)
   }
