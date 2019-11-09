@@ -15,7 +15,6 @@
     "start": "bin/nonogram-solver You",
     "test": "run-s lint mocha",
     "mocha": "mjs-mocha --es-module-specifier-resolution=node",
-    "mocha-watch": "mjs-mocha --es-module-specifier-resolution=node --watch",
     "lint": "standard",
     "lint-fix": "standard --fix",
     "prepare": "run-s documentation",
