@@ -51,13 +51,11 @@ ${INPUT_HINTS_VERTICAL}
     assert.deepStrictEqual(parseHints(withExtraComments), EXPECTED_HINTS)
   })
 
-  it('should throw an Error when called with different amount of cells', () => {
-    assert.throws(() => {
-      parseHints(`
+  it('should allow non-square rectangular hints', () => {
+    parseHints(`
       ${INPUT_HINTS_HORIZONTAL}
       ${INPUT_HINTS_VERTICAL}, 4 4
       `)
-    }, Error)
   })
 
   it('should throw an Error when called with no hints', () => {
