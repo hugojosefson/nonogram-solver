@@ -3,5 +3,5 @@ export default lines => {
     throw new Error('lines must be an array of 2 strings.')
   }
 
-  return 'PLACEHOLDER'
+  return lines
 }

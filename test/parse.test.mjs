@@ -3,6 +3,8 @@
 import assert from 'assert'
 import { parse } from '../src/api'
 
+const EXPECTED = ['line one', 'line two']
+
 describe('parse', () => {
   it('should throw an Error when called without argument', () => {
     assert.throws(() => {
@@ -15,29 +17,29 @@ describe('parse', () => {
     }, Error)
   })
 
-  it('should return PLACEHOLDER if called with two lines', () => {
+  it('should handle two lines', () => {
     const twoLineString = `line one
 line two`
-    assert.strictEqual(parse(twoLineString), 'PLACEHOLDER')
+    assert.deepStrictEqual(parse(twoLineString), EXPECTED)
   })
 
-  it('should return PLACEHOLDER if called with two lines, plus extra empty line', () => {
+  it('should handle two lines, plus extra empty line', () => {
     const withExtraEmptyLine = `line one
 line two
 `
-    assert.strictEqual(parse(withExtraEmptyLine), 'PLACEHOLDER')
+    assert.deepStrictEqual(parse(withExtraEmptyLine), EXPECTED)
   })
 
-  it('should return PLACEHOLDER if called with two lines, plus extra empty lines in between', () => {
+  it('should handle two lines, plus extra empty lines in between', () => {
     const withExtraEmptyLinesInBetween = `line one
 
 
 line two
 `
-    assert.strictEqual(parse(withExtraEmptyLinesInBetween), 'PLACEHOLDER')
+    assert.deepStrictEqual(parse(withExtraEmptyLinesInBetween), EXPECTED)
   })
 
-  it('should return PLACEHOLDER if called with two lines, plus extra comment lines', () => {
+  it('should handle two lines, plus extra comment lines', () => {
     const withExtraComments = `
     # comment here
     line one
@@ -47,6 +49,6 @@ line two
 
 # last comment
 `
-    assert.strictEqual(parse(withExtraComments), 'PLACEHOLDER')
+    assert.deepStrictEqual(parse(withExtraComments), EXPECTED)
   })
 })
