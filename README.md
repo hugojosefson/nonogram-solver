@@ -75,7 +75,12 @@ You can also `import` the module, and use its exported functions programmaticall
 ##### Table of Contents
 
 -   [parseHints](#parsehints)
+-   [gridFromHints](#gridfromhints)
 
 #### parseHints
 
 Parses nonogram hints in the input notation, to its internal representation.
+
+#### gridFromHints
+
+Creates an empty grid, based on dimensions off of hints.
