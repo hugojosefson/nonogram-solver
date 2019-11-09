@@ -1,6 +1,6 @@
 /**
- * Parses a nonogram in the input notation, to its internal representation.
+ * Parses nonogram hints in the input notation, to its internal representation.
  *
- * @name parse
+ * @name parseHints
  */
-export { default as parse } from './parse'
+export { default as parseHints } from './parse-hints'

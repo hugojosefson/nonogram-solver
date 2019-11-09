@@ -74,8 +74,8 @@ You can also `import` the module, and use its exported functions programmaticall
 
 ##### Table of Contents
 
--   [parse](#parse)
+-   [parseHints](#parsehints)
 
-#### parse
+#### parseHints
 
-Parses a nonogram in the input notation, to its internal representation.
+Parses nonogram hints in the input notation, to its internal representation.
