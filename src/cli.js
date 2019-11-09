@@ -1,6 +1,7 @@
-import { parse } from './api'
+import { parseHints } from './api'
 import getStdin from 'get-stdin'
 
 (async () => {
-  parse(await getStdin())
+  const hints = parseHints(await getStdin())
+  console.log(hints)
 })()
