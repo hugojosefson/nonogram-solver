@@ -25,6 +25,17 @@ describe('solve-line-for-overlap', () => {
       ]
     },
     {
+      hints: [6, 6],
+      line: repeat(15),
+      expected: [
+        ...repeat(2),
+        ...repeat(4, FILLED),
+        ...repeat(3),
+        ...repeat(4, FILLED),
+        ...repeat(2)
+      ]
+    },
+    {
       hints: [15],
       line: repeat(15),
       expected: repeat(15, FILLED)
