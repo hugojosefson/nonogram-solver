@@ -57,4 +57,13 @@ ${INPUT_LINE_TWO}
 `
     assert.deepStrictEqual(parseHints(withExtraComments), EXPECTED)
   })
+
+  it('should throw an Error when called with different amount of cells', () => {
+    assert.throws(() => {
+      parseHints(`
+      ${INPUT_LINE_ONE}
+      ${INPUT_LINE_TWO}, 4 4
+      `)
+    }, Error)
+  })
 })

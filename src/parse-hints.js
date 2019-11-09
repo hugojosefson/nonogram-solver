@@ -11,7 +11,12 @@ export default input => {
     .filter(line => line.length)
 
   if (linesOfHints.length === 2) {
-    return linesOfHints.map(parse1LineOfHints)
+    const hints = linesOfHints.map(parse1LineOfHints)
+    if (hints.find(row => row.length !== hints[0].length)) {
+      throw new Error('All hints lines must have the same number of cells, separated by comma (,)')
+    }
+
+    return hints
   }
 
   throw new Error('Input must be 2 lines of hints.')
