@@ -1,6 +1,6 @@
 # Nonogram solver
 
-[![Build Status](https://travis-ci.org/hugojosefson/nonogram-solver.svg?branch=master)](https://travis-ci.org/hugojosefson/nodejs-nonogram-solver)
+[![Build Status](https://travis-ci.org/hugojosefson/nonogram-solver.svg?branch=master)](https://travis-ci.org/hugojosefson/nonogram-solver)
 [![npm page](https://img.shields.io/npm/v/@hugojosefson/nonogram-solver.svg)](https://npmjs.com/package/@hugojosefson/nonogram-solver)
 [![License ISC](https://img.shields.io/npm/l/@hugojosefson/nonogram-solver.svg)](https://tldrlegal.com/license/-isc-license)
 [![SemVer 2.0.0](https://img.shields.io/badge/SemVer-2.0.0-lightgrey.svg)](https://semver.org/spec/v2.0.0.html)
