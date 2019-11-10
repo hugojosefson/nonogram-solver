@@ -90,6 +90,21 @@ describe('solve-line-for-overlap', () => {
         ...repeat(5, CLEAR),
         ...repeat(5, FILLED)
       ]
+    },
+    {
+      hints: [1, 8],
+      line: [
+        ...repeat(1, FILLED),
+        ...repeat(13),
+        ...repeat(1, FILLED)
+      ],
+      expected: [
+        ...repeat(1, FILLED),
+        ...repeat(1, CLEAR),
+        ...repeat(4),
+        ...repeat(1, CLEAR),
+        ...repeat(8, FILLED)
+      ]
     }
   ].forEach(({ hints, line, expected }) => {
     it(`overlapping ${leftPad(10, s(hints))} in ${displayLine(line)} => ${displayLine(expected)}`, () => {
