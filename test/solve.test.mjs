@@ -2,7 +2,7 @@
 
 import assert from 'assert'
 import solveLineForOverlap, { attemptPlaceHint } from '../src/solve-line-for-overlap'
-import { isNothing, just, repeat, s } from '../src/fn'
+import { isNothing, just, leftPad, repeat, s } from '../src/fn'
 import { CLEAR, CLEAR_AFTER_REQUESTED, displayLine, FILLED, UNKNOWN } from '../src/cell'
 
 const line = () => repeat(10)
@@ -77,7 +77,7 @@ describe('solve-line-for-overlap', () => {
       ]
     }
   ].forEach(({ hints, line, expected }) => {
-    it(`overlapping ${s(hints)} in ${displayLine(line)} => ${displayLine(expected)}`, () => {
+    it(`overlapping ${leftPad(10, s(hints))} in ${displayLine(line)} => ${displayLine(expected)}`, () => {
       const actual = solveLineForOverlap(hints, line)
       assert.deepStrictEqual(displayLine(actual), displayLine(expected))
     })

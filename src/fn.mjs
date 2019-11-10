@@ -26,3 +26,4 @@ export const heightOfHints = ([horizontalHints, verticalHints]) => verticalHints
 
 export const repeat = (repetitions, what = UNKNOWN) => Array(repetitions).fill(what)
 export const s = o => JSON.stringify(o)
+export const leftPad = (totalLength, s) => `${repeat(totalLength - s.length, ' ').join('')}${s}`
