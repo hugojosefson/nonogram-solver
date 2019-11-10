@@ -1,48 +1,93 @@
-import { id, just, match, nothing, repeat } from './fn'
-import { FILLED, displayLine } from './cell'
+import { and, id, just, match, nothing, repeat } from './fn'
+import { FILLED, displayLine, CLEAR, UNKNOWN } from './cell'
 
-export const attemptPlaceHint = (line, cellOffset, hint, hintIndex) => {
-  if (hint < 1 || cellOffset + hint > line.length) {
+const isOutOfBounds = (line, cellOffset, hint) => hint < 1 || cellOffset + hint > line.length
+
+const hasBorderLeftOf = (line, cellOffset) => cellOffset === 0
+const hasBorderRightOf = (line, cellOffset, hint) => cellOffset + hint === line.length
+
+const hasClearOrUnknownLeftOf = (line, cellOffset, hint, hintName) =>
+  !hasBorderLeftOf(line, cellOffset, hint, hintName) &&
+  [CLEAR, UNKNOWN].includes(line[cellOffset - 1])
+
+const hasClearOrUnknownRightOf = (line, cellOffset, hint, hintName) =>
+  !hasBorderRightOf(line, cellOffset, hint, hintName) &&
+  [CLEAR, UNKNOWN].includes(line[cellOffset + 1])
+
+const isAvailableFor = hintName => cell => [FILLED, hintName, UNKNOWN].includes(cell)
+const canPaint = (line, cellOffset, hint, hintName) =>
+  line
+    .slice(cellOffset, cellOffset + hint)
+    .every(isAvailableFor(hintName))
+
+export const attemptPlaceHint = (line, cellOffset, hint, hintName) => {
+  const args = [line, cellOffset, hint, hintName]
+  if (isOutOfBounds(...args)) {
     return nothing
   }
-  // TODO: place CLEAR around the hint
-  return just([
-    ...line.slice(0, cellOffset),
-    ...repeat(hint, hintIndex),
-    ...line.slice(cellOffset + hint)
-  ])
+  if (and(hasBorderLeftOf, hasBorderRightOf, canPaint)(...args)) {
+    return just(repeat(hint, hintName))
+  }
+  if (and(hasBorderLeftOf, hasClearOrUnknownRightOf, canPaint)(...args)) {
+    return just([
+      ...repeat(hint, hintName),
+      CLEAR,
+      ...line.slice(cellOffset + hint + 1)
+    ])
+  }
+  if (and(hasClearOrUnknownLeftOf, hasBorderRightOf, canPaint)(...args)) {
+    return just([
+      ...line.slice(0, cellOffset - 1),
+      CLEAR,
+      ...repeat(hint, hintName)
+    ])
+  }
+  if (and(hasClearOrUnknownLeftOf, hasClearOrUnknownRightOf, canPaint)(...args)) {
+    return just([
+      ...line.slice(0, cellOffset - 1),
+      CLEAR,
+      ...repeat(hint, hintName),
+      CLEAR,
+      ...line.slice(cellOffset + hint + 1)
+    ])
+  }
+  return nothing
 }
 
-const placeHintsFromLeft = (hints, line, hintIndexModifier = id) => {
-  let cellOffset = 0
-  return hints.reduce((acc, hint, hintIndex) => {
-    const maybeModifiedLine = attemptPlaceHint(acc, cellOffset, hint, hintIndexModifier(hintIndex))
-    return match(
-      maybeModifiedLine,
-      () => acc,
-      modifiedLine => {
-        cellOffset += hint
-        cellOffset++
-        return modifiedLine
-      }
-    )
-  }, line)
+const placeHintsFromLeft = ([hint, ...hints], line, cellOffset = 0, hintName = 0, hintNameModifier = id) => {
+  if (typeof hint === 'undefined') {
+    return line
+  }
+  if (isOutOfBounds(line, cellOffset, hint)) {
+    return line
+  }
+  const maybeModifiedLine = attemptPlaceHint(line, cellOffset, hint, hintNameModifier(hintName))
+  return match(
+    maybeModifiedLine,
+    () => placeHintsFromLeft([hint, ...hints], line, cellOffset + 1, hintName, hintNameModifier),
+    modifiedLine => placeHintsFromLeft(hints, modifiedLine, cellOffset + hint + 1, hintName + 1, hintNameModifier)
+  )
 }
 
 const placeHintsFromRight = (hints, line) =>
-  placeHintsFromLeft(
-    hints.reverse(),
-    line.reverse(),
-    hintIndex => hints.length - 1 - hintIndex
-  ).reverse()
+  placeHintsFromLeft(hints.reverse(), line.reverse(), 0, 0, hintIndex => hints.length - 1 - hintIndex).reverse()
 
 const overlaps = (line, hintsFromLeft, hintsFromRight) =>
   line.map(
     (cell, index) => {
       const hintFromLeft = hintsFromLeft[index]
       const hintFromRight = hintsFromRight[index]
+      // TODO: Only if the hint actually overlaps, should there be any CLEAR.
+      // TODO: Also, left or right CLEAR are separate and should be considered separately.
+      if (hintFromLeft === CLEAR && hintFromRight === CLEAR) {
+        return CLEAR
+      }
 
       if (!Number.isInteger(hintFromLeft)) {
+        return cell
+      }
+
+      if (!Number.isInteger(hintFromRight)) {
         return cell
       }
 

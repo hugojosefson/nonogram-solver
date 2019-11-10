@@ -3,10 +3,9 @@
 import assert from 'assert'
 import solveLineForOverlap, { attemptPlaceHint } from '../src/solve-line-for-overlap'
 import { isNothing, just, repeat, s } from '../src/fn'
-import { displayLine, FILLED, UNKNOWN } from '../src/cell'
+import { CLEAR, displayLine, FILLED, UNKNOWN } from '../src/cell'
 
-const split = string => string.split('')
-const line = () => split('abcdefghij')
+const line = () => repeat(10)
 
 describe('solve-line-for-overlap', () => {
   [
@@ -62,7 +61,7 @@ describe('solve-line-for-overlap', () => {
       expected: [
         UNKNOWN, ...repeat(13, FILLED), UNKNOWN
       ]
-    }/*,
+    },
     {
       hints: [6, 8],
       line: repeat(15),
@@ -76,7 +75,7 @@ describe('solve-line-for-overlap', () => {
       expected: [
         ...repeat(7, FILLED), CLEAR, ...repeat(7, FILLED)
       ]
-    } */
+    }
   ].forEach(({ hints, line, expected }) => {
     it(`overlapping ${s(hints)} in ${displayLine(line)} => ${displayLine(expected)}`, () => {
       const actual = solveLineForOverlap(hints, line)
@@ -97,20 +96,20 @@ describe('attempt-place-hint', () => {
 
   it('should fill 3 correctly from left', () => {
     const actual = attemptPlaceHint(line(), 0, 3, 0)
-    const expected = just([0, 0, 0, ...split('defghij')])
+    const expected = just([0, 0, 0, CLEAR, ...repeat(6)])
     assert.deepStrictEqual(actual, expected)
   })
 
   it('should fill 3 correctly at right', () => {
     const actual = attemptPlaceHint(line(), 7, 3, 0)
-    const expected = just([...split('abcdefg'), 0, 0, 0])
+    const expected = just([...repeat(6), CLEAR, 0, 0, 0])
     assert.deepStrictEqual(actual, expected)
   })
 
   it('should fill full line correctly', () => {
     const inputLine = line()
     const actual = attemptPlaceHint(inputLine, 0, inputLine.length, 0)
-    const expected = just([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    const expected = just(repeat(10, 0))
     assert.deepStrictEqual(actual, expected)
   })
 })
