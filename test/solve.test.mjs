@@ -1,9 +1,11 @@
 /* eslint-env mocha */
 
-import assert from 'assert'
+import t from 'tap'
 import solveLineForOverlap, { attemptPlaceHint } from '../src/solve-line-for-overlap'
 import { isNothing, just, leftPad, repeat, s } from '../src/fn'
 import { CLEAR, CLEAR_AFTER_REQUESTED, displayLine, FILLED, UNKNOWN } from '../src/cell'
+
+t.mochaGlobals()
 
 const line = () => repeat(10)
 
@@ -92,37 +94,37 @@ describe('solve-line-for-overlap', () => {
   ].forEach(({ hints, line, expected }) => {
     it(`overlapping ${leftPad(10, s(hints))} in ${displayLine(line)} => ${displayLine(expected)}`, () => {
       const actual = solveLineForOverlap(hints, line)
-      assert.deepStrictEqual(displayLine(actual), displayLine(expected))
+      t.strictSame(displayLine(actual), displayLine(expected))
     })
   })
 })
 
 describe('attempt-place-hint', () => {
   it('should return nothing if hint is 0', () => {
-    assert.ok(isNothing(attemptPlaceHint(line(), 0, 0, 0)))
+    t.ok(isNothing(attemptPlaceHint(line(), 0, 0, 0)))
   })
 
   it('should return nothing if hint is > line', () => {
     const inputLine = line()
-    assert.ok(isNothing(attemptPlaceHint(inputLine, 0, inputLine.length + 1, 0)))
+    t.ok(isNothing(attemptPlaceHint(inputLine, 0, inputLine.length + 1, 0)))
   })
 
   it('should fill 3 correctly from left', () => {
     const actual = attemptPlaceHint(line(), 0, 3, 0)
     const expected = just([0, 0, 0, CLEAR_AFTER_REQUESTED, ...repeat(6)])
-    assert.deepStrictEqual(actual, expected)
+    t.strictSame(actual, expected)
   })
 
   it('should fill 3 correctly at right', () => {
     const actual = attemptPlaceHint(line(), 7, 3, 0)
     const expected = just([...repeat(6), CLEAR, 0, 0, 0])
-    assert.deepStrictEqual(actual, expected)
+    t.strictSame(actual, expected)
   })
 
   it('should fill full line correctly', () => {
     const inputLine = line()
     const actual = attemptPlaceHint(inputLine, 0, inputLine.length, 0)
     const expected = just(repeat(10, 0))
-    assert.deepStrictEqual(actual, expected)
+    t.strictSame(actual, expected)
   })
 })
