@@ -107,7 +107,7 @@ describe('solve-line-for-overlap', () => {
       ]
     }
   ].forEach(({ hints, line, expected }) => {
-    it(`overlapping ${leftPad(10, s(hints))} in ${displayLine(line)} => ${displayLine(expected)}`, () => {
+    it(`overlapping ${leftPad(10, s(hints))} in ${s(displayLine(line))} => ${s(displayLine(expected))}`, () => {
       const actual = solveLineForOverlap(hints, line)
       t.strictSame(displayLine(actual), displayLine(expected))
     })
