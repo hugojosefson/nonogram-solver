@@ -1,8 +1,8 @@
 /* eslint-env mocha */
 
 import assert from 'assert'
-import solveLineForOverlap, { placeHint } from '../src/solve-line-for-overlap'
-import { repeat, s } from '../src/fn'
+import solveLineForOverlap, { attemptPlaceHint } from '../src/solve-line-for-overlap'
+import { isNothing, just, repeat, s } from '../src/fn'
 import { displayLine, FILLED, UNKNOWN } from '../src/cell'
 
 const split = string => string.split('')
@@ -85,38 +85,32 @@ describe('solve-line-for-overlap', () => {
   })
 })
 
-describe('place-hint', () => {
-  it('should throw if hint is 0', () => {
-    assert.throws(
-      () => {
-        placeHint(line(), 0, 0, 0)
-      },
-      Error
-    )
+describe('attempt-place-hint', () => {
+  it('should return nothing if hint is 0', () => {
+    assert.ok(isNothing(attemptPlaceHint(line(), 0, 0, 0)))
   })
-  it('should throw if hint is > line', () => {
-    assert.throws(
-      () => {
-        const inputLine = line()
-        placeHint(inputLine, 0, inputLine.length + 1, 0)
-      },
-      Error
-    )
+
+  it('should return nothing if hint is > line', () => {
+    const inputLine = line()
+    assert.ok(isNothing(attemptPlaceHint(inputLine, 0, inputLine.length + 1, 0)))
   })
+
   it('should fill 3 correctly from left', () => {
-    const actual = placeHint(line(), 0, 3, 0)
-    const expected = [0, 0, 0, ...split('defghij')]
+    const actual = attemptPlaceHint(line(), 0, 3, 0)
+    const expected = just([0, 0, 0, ...split('defghij')])
     assert.deepStrictEqual(actual, expected)
   })
+
   it('should fill 3 correctly at right', () => {
-    const actual = placeHint(line(), 7, 3, 0)
-    const expected = [...split('abcdefg'), 0, 0, 0]
+    const actual = attemptPlaceHint(line(), 7, 3, 0)
+    const expected = just([...split('abcdefg'), 0, 0, 0])
     assert.deepStrictEqual(actual, expected)
   })
+
   it('should fill full line correctly', () => {
     const inputLine = line()
-    const actual = placeHint(inputLine, 0, inputLine.length, 0)
-    const expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    const actual = attemptPlaceHint(inputLine, 0, inputLine.length, 0)
+    const expected = just([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     assert.deepStrictEqual(actual, expected)
   })
 })

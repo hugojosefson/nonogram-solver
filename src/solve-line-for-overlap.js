@@ -1,31 +1,31 @@
-import { id, repeat } from './fn'
+import { id, just, match, nothing, repeat } from './fn'
 import { FILLED, displayLine } from './cell'
 
-const canPlaceHint = () => true
-
-export const placeHint = (line, cellOffset, hint, hintIndex) => {
+export const attemptPlaceHint = (line, cellOffset, hint, hintIndex) => {
   if (hint < 1 || cellOffset + hint > line.length) {
-    throw new Error('hint out of bounds')
+    return nothing
   }
   // TODO: place CLEAR around the hint
-  return [
+  return just([
     ...line.slice(0, cellOffset),
     ...repeat(hint, hintIndex),
     ...line.slice(cellOffset + hint)
-  ]
+  ])
 }
+
 const placeHintsFromLeft = (hints, line, hintIndexModifier = id) => {
   let cellOffset = 0
   return hints.reduce((acc, hint, hintIndex) => {
-    // TODO: replace with attemptReplaceHint, returning [modifiedLine] if possible, [] if impossible
-    if (canPlaceHint(acc, cellOffset, hint)) {
-      const modifiedLine = placeHint(acc, cellOffset, hint, hintIndexModifier(hintIndex))
-      cellOffset += hint
-      cellOffset++
-      return modifiedLine
-    } else {
-      return acc
-    }
+    const maybeModifiedLine = attemptPlaceHint(acc, cellOffset, hint, hintIndexModifier(hintIndex))
+    return match(
+      maybeModifiedLine,
+      () => acc,
+      modifiedLine => {
+        cellOffset += hint
+        cellOffset++
+        return modifiedLine
+      }
+    )
   }, line)
 }
 

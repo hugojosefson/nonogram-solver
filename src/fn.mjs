@@ -1,7 +1,14 @@
 import { UNKNOWN } from './cell'
 
 export const id = a => a
+
 export const first = array => array[0]
+
+export const match = (maybe, ifNothing, ifJust) => isJust(maybe) ? ifJust(maybe[0]) : ifNothing()
+export const isJust = a => !!a.length
+export const isNothing = a => !isJust(a)
+export const just = a => [a]
+export const nothing = []
 
 export const widthOfGrid = grid => first(grid).length
 export const heightOfGrid = grid => grid.length
