@@ -3,7 +3,7 @@
 import assert from 'assert'
 import solveLineForOverlap, { attemptPlaceHint } from '../src/solve-line-for-overlap'
 import { isNothing, just, repeat, s } from '../src/fn'
-import { CLEAR, displayLine, FILLED, UNKNOWN } from '../src/cell'
+import { CLEAR, CLEAR_AFTER_REQUESTED, displayLine, FILLED, UNKNOWN } from '../src/cell'
 
 const line = () => repeat(10)
 
@@ -96,7 +96,7 @@ describe('attempt-place-hint', () => {
 
   it('should fill 3 correctly from left', () => {
     const actual = attemptPlaceHint(line(), 0, 3, 0)
-    const expected = just([0, 0, 0, CLEAR, ...repeat(6)])
+    const expected = just([0, 0, 0, CLEAR_AFTER_REQUESTED, ...repeat(6)])
     assert.deepStrictEqual(actual, expected)
   })
 

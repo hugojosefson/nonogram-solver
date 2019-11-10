@@ -1,5 +1,5 @@
 import { and, id, just, match, nothing, repeat } from './fn'
-import { FILLED, displayLine, CLEAR, UNKNOWN } from './cell'
+import { FILLED, CLEAR, UNKNOWN, CLEAR_AFTER_REQUESTED, CLEAR_BEFORE_REQUESTED } from './cell'
 
 const isOutOfBounds = (line, cellOffset, hint) => hint < 1 || cellOffset + hint > line.length
 
@@ -8,11 +8,11 @@ const hasBorderRightOf = (line, cellOffset, hint) => cellOffset + hint === line.
 
 const hasClearOrUnknownLeftOf = (line, cellOffset, hint, hintName) =>
   !hasBorderLeftOf(line, cellOffset, hint, hintName) &&
-  [CLEAR, UNKNOWN].includes(line[cellOffset - 1])
+  [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED].includes(line[cellOffset - 1])
 
 const hasClearOrUnknownRightOf = (line, cellOffset, hint, hintName) =>
   !hasBorderRightOf(line, cellOffset, hint, hintName) &&
-  [CLEAR, UNKNOWN].includes(line[cellOffset + 1])
+  [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED].includes(line[cellOffset + 1])
 
 const isAvailableFor = hintName => cell => [FILLED, hintName, UNKNOWN].includes(cell)
 const canPaint = (line, cellOffset, hint, hintName) =>
@@ -31,7 +31,7 @@ export const attemptPlaceHint = (line, cellOffset, hint, hintName) => {
   if (and(hasBorderLeftOf, hasClearOrUnknownRightOf, canPaint)(...args)) {
     return just([
       ...repeat(hint, hintName),
-      CLEAR,
+      CLEAR_AFTER_REQUESTED,
       ...line.slice(cellOffset + hint + 1)
     ])
   }
@@ -47,7 +47,7 @@ export const attemptPlaceHint = (line, cellOffset, hint, hintName) => {
       ...line.slice(0, cellOffset - 1),
       CLEAR,
       ...repeat(hint, hintName),
-      CLEAR,
+      CLEAR_AFTER_REQUESTED,
       ...line.slice(cellOffset + hint + 1)
     ])
   }
@@ -69,41 +69,55 @@ const placeHintsFromLeft = ([hint, ...hints], line, cellOffset = 0, hintName = 0
   )
 }
 
+const reverseClearRequest = cell => {
+  switch (cell) {
+    case CLEAR_BEFORE_REQUESTED: return CLEAR_AFTER_REQUESTED
+    case CLEAR_AFTER_REQUESTED: return CLEAR_BEFORE_REQUESTED
+    default: return cell
+  }
+}
+
 const placeHintsFromRight = (hints, line) =>
-  placeHintsFromLeft(hints.reverse(), line.reverse(), 0, 0, hintIndex => hints.length - 1 - hintIndex).reverse()
+  placeHintsFromLeft(
+    hints.reverse(),
+    line.reverse(),
+    0,
+    0,
+    hintIndex => hints.length - 1 - hintIndex
+  )
+    .reverse()
+    .map(reverseClearRequest)
 
 const overlaps = (line, hintsFromLeft, hintsFromRight) =>
   line.map(
-    (cell, index) => {
+    (cellFromLine, index) => {
       const hintFromLeft = hintsFromLeft[index]
       const hintFromRight = hintsFromRight[index]
-      // TODO: Only if the hint actually overlaps, should there be any CLEAR.
-      // TODO: Also, left or right CLEAR are separate and should be considered separately.
-      if (hintFromLeft === CLEAR && hintFromRight === CLEAR) {
-        return CLEAR
-      }
-
-      if (!Number.isInteger(hintFromLeft)) {
-        return cell
-      }
-
-      if (!Number.isInteger(hintFromRight)) {
-        return cell
-      }
 
       if (hintFromLeft === hintFromRight) {
-        return FILLED
-      } else {
-        return cell
+        const hint = hintFromLeft
+        if (Number.isInteger(hint)) {
+          return FILLED
+        }
+        return hint
       }
+
+      const bothAreIntegers = Number.isInteger(hintFromLeft) && Number.isInteger(hintFromRight)
+      if (bothAreIntegers) {
+        return UNKNOWN
+      }
+
+      return cellFromLine
     }
   )
 
 const solveLineForOverlap = (hints, line) => {
   const placedFromLeft = placeHintsFromLeft(hints, line)
   const placedFromRight = placeHintsFromRight(hints, line)
-  console.log(`placedFromLeft:  ${displayLine(placedFromLeft)}`)
-  console.log(`placedFromRight: ${displayLine(placedFromRight)}`)
+  // console.log(`hints:           ${s(hints)}`)
+  // console.log(`line:            ${displayLine(line)}`)
+  // console.log(`placedFromLeft:  ${displayLine(placedFromLeft)}`)
+  // console.log(`placedFromRight: ${displayLine(placedFromRight)}`)
   return overlaps(line, placedFromLeft, placedFromRight)
 }
 export default solveLineForOverlap
