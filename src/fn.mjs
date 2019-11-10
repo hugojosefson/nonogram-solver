@@ -1,16 +1,24 @@
 import { UNKNOWN } from './cell'
 
 export const id = a => a
+export const isUndefined = a => typeof a === 'undefined'
 
-export const first = array => array[0]
+export const head = array => array[0]
 
-export const match = (maybe, ifNothing, ifJust) => isJust(maybe) ? ifJust(maybe[0]) : ifNothing()
+export const and = (fn, ...fns) => {
+  if (isUndefined(fn)) {
+    return () => true
+  }
+  return (...args) => fn(...args) && and(...fns)(...args)
+}
+
+export const match = (maybe, inCaseOfNothing, inCaseOfJust) => isJust(maybe) ? inCaseOfJust(head(maybe)) : inCaseOfNothing()
 export const isJust = a => !!a.length
 export const isNothing = a => !isJust(a)
 export const just = a => [a]
 export const nothing = []
 
-export const widthOfGrid = grid => first(grid).length
+export const widthOfGrid = grid => head(grid).length
 export const heightOfGrid = grid => grid.length
 
 export const widthOfHints = ([horizontalHints, verticalHints]) => horizontalHints.length
