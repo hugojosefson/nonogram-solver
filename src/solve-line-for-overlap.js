@@ -1,14 +1,7 @@
 import { and, displayLine, displayMaybeLine, id, just, match, nothing, repeat, s } from './fn'
-import {
-  CLEAR,
-  CLEAR_AFTER_REQUESTED,
-  CLEAR_BEFORE_REQUESTED,
-  CLEAR_PADDING_REQUESTED,
-  FILLED,
-  UNKNOWN
-} from './cell'
+import { CLEAR, CLEAR_AFTER_REQUESTED, CLEAR_BEFORE_REQUESTED, CLEAR_PADDING_REQUESTED, FILLED, UNKNOWN } from './cell'
 
-const isOutOfBounds = (line, cellOffset, hint) => hint < 1 || cellOffset + hint > line.length
+const isOutOfBounds = (line, cellOffset, hint) => cellOffset < 0 || cellOffset + hint > line.length
 
 const hasBorderLeftOf = (line, cellOffset) => cellOffset === 0
 const hasBorderRightOf = (line, cellOffset, hint) => cellOffset + hint === line.length
@@ -72,7 +65,7 @@ export const attemptPlaceClearForTheRest = (line, cellOffset) => {
     return nothing
   }
   if (hasBorderRightOf(line, cellOffset, 0)) {
-    return line
+    return just(line)
   }
   if (canClear(line, cellOffset)) {
     return just([
@@ -84,40 +77,57 @@ export const attemptPlaceClearForTheRest = (line, cellOffset) => {
 }
 
 const placeHintsFromLeft = ([hint, ...hints], line, cellOffset = 0, hintName = 0, hintNameModifier = id) => {
-  if (typeof hint === 'undefined') {
-    return attemptPlaceClearForTheRest(line, cellOffset)
-  }
-  if (isOutOfBounds(line, cellOffset, hint)) {
+  if (isOutOfBounds(line, cellOffset, hint || 1)) {
     return nothing
+  }
+  if (typeof hint === 'undefined') {
+    if (cellOffset === line.length + 1) {
+      return just(line)
+    }
+    const maybeClearedTheRest = attemptPlaceClearForTheRest(line, cellOffset)
+    return match(
+      maybeClearedTheRest,
+      () => placeHintsFromLeft([hint, ...hints], line, cellOffset + 1, hintName, hintNameModifier),
+      clearedTheRest => just(clearedTheRest)
+    )
   }
   const maybeModifiedLine = attemptPlaceHint(line, cellOffset, hint, hintNameModifier(hintName))
   return match(
     maybeModifiedLine,
     () => placeHintsFromLeft([hint, ...hints], line, cellOffset + 1, hintName, hintNameModifier),
-    modifiedLine => placeHintsFromLeft(hints, modifiedLine, cellOffset + hint + 1, hintName + 1, hintNameModifier)
+    modifiedLine => {
+      return placeHintsFromLeft(hints, modifiedLine, cellOffset + hint + 1, hintName + 1, hintNameModifier)
+    }
   )
 }
 
 const reverseClearRequest = cell => {
   switch (cell) {
-    case CLEAR_BEFORE_REQUESTED: return CLEAR_AFTER_REQUESTED
-    case CLEAR_AFTER_REQUESTED: return CLEAR_BEFORE_REQUESTED
-    default: return cell
+    case CLEAR_BEFORE_REQUESTED:
+      return CLEAR_AFTER_REQUESTED
+    case CLEAR_AFTER_REQUESTED:
+      return CLEAR_BEFORE_REQUESTED
+    default:
+      return cell
   }
 }
 
-const placeHintsFromRight = (hints, line) =>
-  placeHintsFromLeft(
+const placeHintsFromRight = (hints, line) => {
+  const maybeModifiedLine = placeHintsFromLeft(
     hints.reverse(),
     line.reverse(),
     0,
     0,
     hintIndex => hints.length - 1 - hintIndex
   )
-    .map(modifiedLine => modifiedLine
-      .reverse()
-      .map(reverseClearRequest)
-    )
+  const maybeReversedModifiedLine = maybeModifiedLine
+    .map(modifiedLine => {
+      return modifiedLine
+        .reverse()
+        .map(reverseClearRequest)
+    })
+  return maybeReversedModifiedLine
+}
 
 const overlaps = (line, hintsFromLeft, hintsFromRight) =>
   line.map(
@@ -151,10 +161,15 @@ const solveLineForOverlap = (hints, line) => {
   console.log(`placedFromLeft:  ${displayMaybeLine(maybePlacedFromLeft)}`)
   console.log(`placedFromRight: ${displayMaybeLine(maybePlacedFromRight)}`)
 
-  return maybePlacedFromLeft.map(
-    left => maybePlacedFromRight.map(
-      right => overlaps(line, left, right)
+  const result = match(
+    maybePlacedFromLeft,
+    () => nothing,
+    left => match(
+      maybePlacedFromRight,
+      () => nothing,
+      right => just(overlaps(line, left, right))
     )
   )
+  return result
 }
 export default solveLineForOverlap

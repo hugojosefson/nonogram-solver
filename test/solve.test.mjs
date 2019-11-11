@@ -115,7 +115,9 @@ describe('solve-line-for-overlap', () => {
   ].forEach(({ hints, line, expected }) => {
     it(`overlapping ${leftPad(10, s(hints))} in ${s(displayLine(line))} => ${s(displayMaybeLine(expected))}`, () => {
       const actual = solveLineForOverlap(hints, line)
-      t.strictSame(displayMaybeLine(actual), displayMaybeLine(expected))
+      const actualDisplay = displayMaybeLine(actual)
+      const expectedDisplay = displayMaybeLine(expected)
+      t.strictSame(actualDisplay, expectedDisplay)
     })
   })
 })

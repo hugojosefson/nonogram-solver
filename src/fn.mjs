@@ -12,13 +12,26 @@ export const and = (fn, ...fns) => {
   return (...args) => fn(...args) && and(...fns)(...args)
 }
 
-export const match = (maybe, inCaseOfNothing, inCaseOfJust) => isJust(maybe) ? inCaseOfJust(head(maybe)) : inCaseOfNothing()
-export const isJust = a => !!a.length
-export const isNothing = a => !isJust(a)
+export const match = (maybe, inCaseOfNothing, inCaseOfJust) => {
+  if (isJust(maybe)) {
+    return inCaseOfJust(head(maybe))
+  }
+  if (isNothing(maybe)) {
+    return inCaseOfNothing()
+  }
+  console.error(`Unexpected maybe: ${s(maybe)}`)
+  throw new Error('Unexpected maybe.')
+}
+export const isJust = a => { return a.length === 1 }
+export const isNothing = a => a.length === 0
 export const just = a => [a]
 export const nothing = []
 export const displayCell = cell => typeof cell === 'symbol' ? cell.description : cell
-export const displayLine = line => line.map(displayCell).join('')
+export const displayLine = line => {
+  const mapped = line.map(displayCell)
+  const joined = mapped.join('')
+  return joined
+}
 export const displayMaybeLine = maybeLine => match(maybeLine, () => 'nothing', line => `just(${displayLine(line)})`)
 
 export const widthOfGrid = grid => head(grid).length
