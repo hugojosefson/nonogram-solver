@@ -1,5 +1,12 @@
-import { and, id, just, match, nothing, repeat } from './fn'
-import { FILLED, CLEAR, UNKNOWN, CLEAR_AFTER_REQUESTED, CLEAR_BEFORE_REQUESTED } from './cell'
+import { and, displayLine, displayMaybeLine, id, just, match, nothing, repeat, s } from './fn'
+import {
+  CLEAR,
+  CLEAR_AFTER_REQUESTED,
+  CLEAR_BEFORE_REQUESTED,
+  CLEAR_PADDING_REQUESTED,
+  FILLED,
+  UNKNOWN
+} from './cell'
 
 const isOutOfBounds = (line, cellOffset, hint) => hint < 1 || cellOffset + hint > line.length
 
@@ -8,17 +15,23 @@ const hasBorderRightOf = (line, cellOffset, hint) => cellOffset + hint === line.
 
 const hasClearOrUnknownLeftOf = (line, cellOffset, hint, hintName) =>
   !hasBorderLeftOf(line, cellOffset, hint, hintName) &&
-  [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED].includes(line[cellOffset - 1])
+  [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED, CLEAR_PADDING_REQUESTED].includes(line[cellOffset - 1])
 
 const hasClearOrUnknownRightOf = (line, cellOffset, hint, hintName) =>
   !hasBorderRightOf(line, cellOffset, hint, hintName) &&
-  [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED].includes(line[cellOffset + 1])
+  [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED, CLEAR_PADDING_REQUESTED].includes(line[cellOffset + 1])
 
-const isAvailableFor = hintName => cell => [FILLED, hintName, UNKNOWN].includes(cell)
+const isAvailableToPaintHint = hintName => cell => [FILLED, hintName, UNKNOWN].includes(cell)
+const isAvailableToClear = cell => [CLEAR, UNKNOWN, CLEAR_AFTER_REQUESTED, CLEAR_BEFORE_REQUESTED, CLEAR_PADDING_REQUESTED].includes(cell)
 const canPaint = (line, cellOffset, hint, hintName) =>
   line
     .slice(cellOffset, cellOffset + hint)
-    .every(isAvailableFor(hintName))
+    .every(isAvailableToPaintHint(hintName))
+
+const canClear = (line, cellOffset) =>
+  line
+    .slice(cellOffset, line.length)
+    .every(isAvailableToClear)
 
 export const attemptPlaceHint = (line, cellOffset, hint, hintName) => {
   const args = [line, cellOffset, hint, hintName]
@@ -54,12 +67,28 @@ export const attemptPlaceHint = (line, cellOffset, hint, hintName) => {
   return nothing
 }
 
-const placeHintsFromLeft = ([hint, ...hints], line, cellOffset = 0, hintName = 0, hintNameModifier = id) => {
-  if (typeof hint === 'undefined') {
+export const attemptPlaceClearForTheRest = (line, cellOffset) => {
+  if (isOutOfBounds(line, cellOffset, 0)) {
+    return nothing
+  }
+  if (hasBorderRightOf(line, cellOffset, 0)) {
     return line
   }
+  if (canClear(line, cellOffset)) {
+    return just([
+      ...line.slice(0, cellOffset),
+      ...repeat(line.length - cellOffset, CLEAR_PADDING_REQUESTED)
+    ])
+  }
+  return nothing
+}
+
+const placeHintsFromLeft = ([hint, ...hints], line, cellOffset = 0, hintName = 0, hintNameModifier = id) => {
+  if (typeof hint === 'undefined') {
+    return attemptPlaceClearForTheRest(line, cellOffset)
+  }
   if (isOutOfBounds(line, cellOffset, hint)) {
-    return line
+    return nothing
   }
   const maybeModifiedLine = attemptPlaceHint(line, cellOffset, hint, hintNameModifier(hintName))
   return match(
@@ -85,8 +114,10 @@ const placeHintsFromRight = (hints, line) =>
     0,
     hintIndex => hints.length - 1 - hintIndex
   )
-    .reverse()
-    .map(reverseClearRequest)
+    .map(modifiedLine => modifiedLine
+      .reverse()
+      .map(reverseClearRequest)
+    )
 
 const overlaps = (line, hintsFromLeft, hintsFromRight) =>
   line.map(
@@ -112,12 +143,18 @@ const overlaps = (line, hintsFromLeft, hintsFromRight) =>
   )
 
 const solveLineForOverlap = (hints, line) => {
-  const placedFromLeft = placeHintsFromLeft(hints, line)
-  const placedFromRight = placeHintsFromRight(hints, line)
-  // console.log(`hints:           ${s(hints)}`)
-  // console.log(`line:            ${displayLine(line)}`)
-  // console.log(`placedFromLeft:  ${displayLine(placedFromLeft)}`)
-  // console.log(`placedFromRight: ${displayLine(placedFromRight)}`)
-  return overlaps(line, placedFromLeft, placedFromRight)
+  const maybePlacedFromLeft = placeHintsFromLeft(hints, line)
+  const maybePlacedFromRight = placeHintsFromRight(hints, line)
+
+  console.log(`hints:           ${s(hints)}`)
+  console.log(`line:            ${s(displayLine(line))}`)
+  console.log(`placedFromLeft:  ${displayMaybeLine(maybePlacedFromLeft)}`)
+  console.log(`placedFromRight: ${displayMaybeLine(maybePlacedFromRight)}`)
+
+  return maybePlacedFromLeft.map(
+    left => maybePlacedFromRight.map(
+      right => overlaps(line, left, right)
+    )
+  )
 }
 export default solveLineForOverlap

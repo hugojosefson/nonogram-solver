@@ -17,6 +17,9 @@ export const isJust = a => !!a.length
 export const isNothing = a => !isJust(a)
 export const just = a => [a]
 export const nothing = []
+export const displayCell = cell => typeof cell === 'symbol' ? cell.description : cell
+export const displayLine = line => line.map(displayCell).join('')
+export const displayMaybeLine = maybeLine => match(maybeLine, () => 'nothing', line => `just(${displayLine(line)})`)
 
 export const widthOfGrid = grid => head(grid).length
 export const heightOfGrid = grid => grid.length
