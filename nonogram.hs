@@ -5,7 +5,7 @@ data ClearReason =
   Decided | Requested ClearLocation
 
 data ClearLocation =
-  Before | After
+  Before | Middle | After
 
 instance Show Cell where
   show Unknown = " "
@@ -54,7 +54,7 @@ placeClear (cell:line) =
     canClearCell = canClear cell
     maybeClearedLine = placeClear line
   in
-    if canClearCell then fmap (\line -> (Clear Decided:line)) maybeClearedLine
+    if canClearCell then fmap (\line -> ((Clear $ Requested Middle):line)) maybeClearedLine
     else Nothing
 
 placeHints :: Hints -> Line -> (HintName -> HintName) -> Maybe Line
@@ -62,7 +62,7 @@ placeHints [] [] _ = Just []
 placeHints [Hint name 0] [] _ = Just []
 placeHints hints [] _ = Nothing
 placeHints [] line _ = placeClear line
-placeHints ((Hint name 0):hints) (Unknown:line) hnm = prepend (Clear Decided) (placeHints hints line hnm)
+placeHints ((Hint name 0):hints) (Unknown:line) hnm = prepend ((Clear $ Requested Middle)) (placeHints hints line hnm)
 placeHints ((Hint name value):hints) (Unknown:line) hnm = prepend (ProbablyHint $ hnm name) (placeHints ((Hint name $ value - 1):hints) line hnm)
 placeHints ((Hint name value):hints) (Filled:line) hnm = prepend Filled (placeHints ((Hint name $ value - 1):hints) line hnm)
 placeHints ((Hint name value):hints) (_:line) _ = Nothing
