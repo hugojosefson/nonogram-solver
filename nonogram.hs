@@ -59,6 +59,7 @@ placeClear (cell:line) =
 
 placeHints :: Hints -> Line -> (HintName -> HintName) -> Maybe Line
 placeHints [] [] _ = Just []
+placeHints [Hint name 0] [] _ = Just []
 placeHints hints [] _ = Nothing
 placeHints [] line _ = placeClear line
 placeHints ((Hint name 0):hints) (Unknown:line) hnm = fmap (\l -> (Clear Decided:l)) $ placeHints hints line hnm
