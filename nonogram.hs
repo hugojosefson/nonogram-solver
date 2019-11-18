@@ -62,8 +62,13 @@ placeHints [] [] _ = Just []
 placeHints [Hint name 0] [] _ = Just []
 placeHints hints [] _ = Nothing
 placeHints [] line _ = placeClear line
-placeHints ((Hint name 0):hints) (Unknown:line) hnm = fmap (\l -> (Clear Decided:l)) $ placeHints hints line hnm
-placeHints ((Hint name value):hints) (Unknown:line) hnm = fmap (\l -> (((ProbablyHint $ hnm name):l))) $ placeHints ((Hint name $ value - 1):hints) line hnm
+placeHints ((Hint name 0):hints) (Unknown:line) hnm = prepend (Clear Decided) (placeHints hints line hnm)
+placeHints ((Hint name value):hints) (Unknown:line) hnm = prepend (ProbablyHint $ hnm name) (placeHints ((Hint name $ value - 1):hints) line hnm)
+placeHints ((Hint name value):hints) (Filled:line) hnm = prepend Filled (placeHints ((Hint name $ value - 1):hints) line hnm)
+
+prepend :: Cell -> Maybe Line -> Maybe Line
+prepend _ Nothing = Nothing
+prepend cell (Just(line)) = Just((cell:line))
 
 placeFromLeft :: Hints -> Line -> Maybe Line
 placeFromLeft hints line = placeHints hints line id
