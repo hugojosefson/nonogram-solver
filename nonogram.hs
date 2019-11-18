@@ -71,9 +71,6 @@ reverseBackPlacedLine (Just line) = Just(fmap reverseClearRequest (reverse line)
 reverseHintName :: Int -> HintName -> HintName
 reverseHintName hintsLength (HintName a) = HintName (hintsLength - 1 - a)
 
-nth :: Int -> [a] -> a
-nth n xs = head $ reverse $ take (n + 1) xs
-
 reverseClearRequest :: Cell -> Cell
 reverseClearRequest (Clear (Requested Before)) = Clear (Requested After)
 reverseClearRequest (Clear (Requested After)) = Clear (Requested Before)
