@@ -60,7 +60,7 @@ placeClear (cell:line) =
 placeHints :: Hints -> Line -> (HintName -> HintName) -> Maybe Line
 placeHints [] [] _ = Just []
 placeHints hints [] _ = Nothing
-placeHints [] (cell:line) _ = placeClear line
+placeHints [] line _ = placeClear line
 
 placeFromLeft :: Hints -> Line -> Maybe Line
 placeFromLeft hints line = placeHints hints line id
