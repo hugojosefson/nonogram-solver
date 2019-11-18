@@ -20,7 +20,6 @@ lineToString [] = ""
 lineToString xs = foldl1 (++) (fmap show xs)
 
 type Line = [Cell]
-
 type Hints = [Hint]
 type Hint = Int
 type HintIndex = Int
