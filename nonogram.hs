@@ -18,6 +18,16 @@ instance Show Cell where
 lineToString :: Line -> String
 lineToString = concatMap show
 
+stringToLine :: String -> Line
+stringToLine = fmap charToCell
+
+charToCell :: Char -> Cell
+charToCell ' ' = Unknown
+charToCell '#' = Filled
+charToCell 'x' = Clear Decided
+charToCell '[' = Clear (Requested Before)
+charToCell ']' = Clear (Requested After)
+
 type Line = [Cell]
 type Hints = [Hint]
 type Hint = Int
