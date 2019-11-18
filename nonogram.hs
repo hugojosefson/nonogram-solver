@@ -15,9 +15,9 @@ instance Show Cell where
   show (Clear (Requested Before)) = "["
   show (Clear (Requested After)) = "]"
 
-cellsToString :: [Cell] -> String
-cellsToString [] = ""
-cellsToString xs = foldl1 (++) (fmap show xs)
+lineToString :: Line -> String
+lineToString [] = ""
+lineToString xs = foldl1 (++) (fmap show xs)
 
 type Line = [Cell]
 
