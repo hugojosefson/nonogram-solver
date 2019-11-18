@@ -1,5 +1,5 @@
 data Cell =
-  Unknown | Filled | Clear ClearReason | PossibleForHint Hint
+  Unknown | Filled | Clear ClearReason | ProbablyHint Hint
 
 data ClearReason =
   Decided | Requested ClearLocation
@@ -10,7 +10,7 @@ data ClearLocation =
 instance Show Cell where
   show Unknown = " "
   show Filled = "#"
-  show (PossibleForHint a) = show a
+  show (ProbablyHint a) = show a
   show (Clear Decided) = "x"
   show (Clear (Requested Before)) = "["
   show (Clear (Requested After)) = "]"
@@ -53,13 +53,19 @@ reverseClearRequest (Clear (Requested Before)) = Clear (Requested After)
 reverseClearRequest (Clear (Requested After)) = Clear (Requested Before)
 reverseClearRequest x = x
 
-maybeOverlaps :: Maybe line -> Maybe line -> Maybe line
+maybeOverlaps :: Maybe Line -> Maybe Line -> Maybe Line
 maybeOverlaps Nothing (Just b) = Nothing
 maybeOverlaps (Just a) Nothing = Nothing
-maybeOverlaps (Just a) (Just b) = Just(overlaps a b)
+maybeOverlaps (Just a) (Just b) = Just(zipWith overlap a b)
 
-overlaps :: line -> line -> line
-overlaps a b = undefined
+overlap :: Cell -> Cell -> Cell
+overlap Filled Filled = Filled
+overlap (ProbablyHint a) (ProbablyHint b) =
+  if a == b then Filled
+  else Unknown
+overlap (ProbablyHint a) Unknown = Filled
+overlap Unknown (ProbablyHint a) = Filled
+overlap (Clear Decided) (Clear Decided) = Clear Decided
 
 solveLine :: Hints -> Line -> Maybe Line
 solveLine [] line = Just line
