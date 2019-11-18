@@ -66,6 +66,7 @@ placeHints ((Hint name 0):hints) (Unknown:line) hnm = prepend (Clear Decided) (p
 placeHints ((Hint name value):hints) (Unknown:line) hnm = prepend (ProbablyHint $ hnm name) (placeHints ((Hint name $ value - 1):hints) line hnm)
 placeHints ((Hint name value):hints) (Filled:line) hnm = prepend Filled (placeHints ((Hint name $ value - 1):hints) line hnm)
 placeHints ((Hint name value):hints) (_:line) _ = Nothing
+-- TODO backtrack, and retry differently, if we're on the wrong track
 
 prepend :: Cell -> Maybe Line -> Maybe Line
 prepend _ Nothing = Nothing
