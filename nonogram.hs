@@ -31,21 +31,33 @@ charToCell ']' = Clear (Requested After)
 type Line = [Cell]
 type Hints = [Hint]
 type Hint = Int
-type HintIndex = Int
-type CellOffset = Int
+data HintName = Hint0 | Hint1 | Hint2 | Hint3 | Hint4 | Hint5 | Hint6 | Hint7 deriving (Eq, Show)
+hintNames = [Hint0, Hint1, Hint2, Hint3, Hint4, Hint5, Hint6, Hint7]
 
-placeHintsOnLine :: Hints -> Line -> CellOffset -> HintIndex -> (HintIndex -> HintIndex) -> Maybe Line
-placeHintsOnLine hints line cellOffset hintIndex hintIndexModifier = undefined
+canClear :: Cell -> Bool
+canClear (Clear _) = True
+canClear Unknown = True
+canClear _ = False
+
+placeClearForTheRest :: Line -> Maybe Line
+placeClearForTheRest [] = Just []
+placeClearForTheRest (cell:line) = Just $ [Clear Decided, ...(placeClearForTheRest line).unwrap]
+
+placeHintsOnLine :: Hints -> Line -> (HintName -> HintName) -> Maybe Line
+placeHintsOnLine [] [] hintNameModifier = Just []
+placeHintsOnLine [] line hintNameModifier = placeClearForTheRest line
+placeHintsOnLine hints [] hintNameModifier = Nothing
+--placeHintsOnLine (hint:hints) (cell:cells) hintNameModifier =
 
 placeFromLeft :: Hints -> Line -> Maybe Line
-placeFromLeft hints line = placeHintsOnLine hints line 0 0 id
+placeFromLeft hints line = placeHintsOnLine hints line id
 
 placeFromRight :: Hints -> Line -> Maybe Line
 placeFromRight hints line =
   let
     rHints = reverse hints
     rLine = reverse line
-    placedFromLeft = placeHintsOnLine rHints rLine 0 0 (reverseHintIndex line)
+    placedFromLeft = placeHintsOnLine rHints rLine (reverseHintName $ length rHints)
   in
     reverseBackPlacedLine placedFromLeft
 
@@ -53,8 +65,18 @@ reverseBackPlacedLine :: Maybe Line -> Maybe Line
 reverseBackPlacedLine Nothing = Nothing
 reverseBackPlacedLine (Just line) = Just(fmap reverseClearRequest (reverse line))
 
-reverseHintIndex :: Line -> HintIndex -> HintIndex
-reverseHintIndex line hintIndex = (length line) - 1 - hintIndex
+reverseHintName :: Int -> HintName -> HintName
+reverseHintName hintsLength Hint0 = nth (hintsLength - 1) hintNames
+reverseHintName hintsLength Hint1 = nth (hintsLength - 2) hintNames
+reverseHintName hintsLength Hint2 = nth (hintsLength - 3) hintNames
+reverseHintName hintsLength Hint3 = nth (hintsLength - 4) hintNames
+reverseHintName hintsLength Hint4 = nth (hintsLength - 5) hintNames
+reverseHintName hintsLength Hint5 = nth (hintsLength - 6) hintNames
+reverseHintName hintsLength Hint6 = nth (hintsLength - 7) hintNames
+reverseHintName hintsLength Hint7 = nth (hintsLength - 8) hintNames
+
+nth :: Int -> [a] -> a
+nth n xs = head $ reverse $ take (n + 1) xs
 
 reverseClearRequest :: Cell -> Cell
 reverseClearRequest (Clear (Requested Before)) = Clear (Requested After)
