@@ -53,13 +53,16 @@ reverseClearRequest (Clear (Requested Before)) = Clear (Requested After)
 reverseClearRequest (Clear (Requested After)) = Clear (Requested Before)
 reverseClearRequest x = x
 
-overlaps :: Maybe line -> Maybe line -> Maybe line
-overlaps Nothing (Just b) = Nothing
-overlaps (Just a) Nothing = Nothing
-overlaps (Just a) (Just b) = undefined
+maybeOverlaps :: Maybe line -> Maybe line -> Maybe line
+maybeOverlaps Nothing (Just b) = Nothing
+maybeOverlaps (Just a) Nothing = Nothing
+maybeOverlaps (Just a) (Just b) = Just(overlaps a b)
+
+overlaps :: line -> line -> line
+overlaps a b = undefined
 
 solveLine :: Hints -> Line -> Maybe Line
 solveLine [] line = Just line
 solveLine hints [] = Just []
-solveLine hints line = overlaps (placeFromLeft hints line) (placeFromRight hints line)
+solveLine hints line = maybeOverlaps (placeFromLeft hints line) (placeFromRight hints line)
 
