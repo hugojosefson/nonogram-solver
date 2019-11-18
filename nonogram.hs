@@ -96,6 +96,7 @@ reverseClearRequest (Clear (Requested After)) = Clear (Requested Before)
 reverseClearRequest x = x
 
 maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Line
+maybeOverlaps line Nothing Nothing = line
 maybeOverlaps line Nothing (Just b) = line
 maybeOverlaps line (Just a) Nothing = line
 maybeOverlaps line (Just a) (Just b) = zipWith3 overlap line a b
