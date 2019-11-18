@@ -16,8 +16,7 @@ instance Show Cell where
   show (Clear (Requested After)) = "]"
 
 lineToString :: Line -> String
-lineToString [] = ""
-lineToString xs = foldl1 (++) (fmap show xs)
+lineToString = concatMap show
 
 type Line = [Cell]
 type Hints = [Hint]
