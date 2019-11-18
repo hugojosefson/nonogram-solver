@@ -42,8 +42,6 @@ instance Ord Hint where
 data HintName = HintName Int
   deriving (Read, Show, Eq, Ord)
 
-hintNames = fmap HintName [0 .. 7]
-
 canClear :: Cell -> Bool
 canClear (Clear _) = True
 canClear Unknown = True
