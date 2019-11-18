@@ -1,5 +1,5 @@
 data Cell =
-  Unknown | Filled | Clear ClearReason | ProbablyHint Hint
+  Unknown | Filled | Clear ClearReason | ProbablyHint HintName
 
 data ClearReason =
   Decided | Requested ClearLocation
@@ -47,8 +47,20 @@ canClear (Clear _) = True
 canClear Unknown = True
 canClear _ = False
 
+placeClear :: Line -> Maybe Line
+placeClear [] = Just []
+placeClear (cell:line) =
+  let
+    canClearCell = canClear cell
+    maybeClearedLine = placeClear line
+  in
+    if canClearCell then fmap (\line -> (Clear Decided:line)) maybeClearedLine
+    else Nothing
+
 placeHints :: Hints -> Line -> (HintName -> HintName) -> Maybe Line
 placeHints [] [] _ = Just []
+placeHints hints [] _ = Nothing
+placeHints [] (cell:line) _ = placeClear line
 
 placeFromLeft :: Hints -> Line -> Maybe Line
 placeFromLeft hints line = placeHints hints line id
