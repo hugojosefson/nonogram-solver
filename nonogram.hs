@@ -61,22 +61,23 @@ reverseClearRequest (Clear (Requested Before)) = Clear (Requested After)
 reverseClearRequest (Clear (Requested After)) = Clear (Requested Before)
 reverseClearRequest x = x
 
-maybeOverlaps :: Maybe Line -> Maybe Line -> Maybe Line
-maybeOverlaps Nothing (Just b) = Nothing
-maybeOverlaps (Just a) Nothing = Nothing
-maybeOverlaps (Just a) (Just b) = Just(zipWith overlap a b)
+maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Line
+maybeOverlaps line Nothing (Just b) = line
+maybeOverlaps line (Just a) Nothing = line
+maybeOverlaps line (Just a) (Just b) = zipWith3 overlap line a b
 
-overlap :: Cell -> Cell -> Cell
-overlap Filled Filled = Filled
-overlap (ProbablyHint a) (ProbablyHint b) =
+overlap :: Cell -> Cell -> Cell -> Cell
+overlap _ Filled Filled = Filled
+overlap c (ProbablyHint a) (ProbablyHint b) =
   if a == b then Filled
-  else Unknown
-overlap (ProbablyHint a) Unknown = Filled
-overlap Unknown (ProbablyHint a) = Filled
-overlap (Clear Decided) (Clear Decided) = Clear Decided
+  else c
+overlap _ (ProbablyHint a) Unknown = Filled
+overlap _ Unknown (ProbablyHint a) = Filled
+overlap _ (Clear Decided) (Clear Decided) = Clear Decided
+overlap c _ _ = c
 
-solveLine :: Hints -> Line -> Maybe Line
-solveLine [] line = Just line
-solveLine hints [] = Just []
-solveLine hints line = maybeOverlaps (placeFromLeft hints line) (placeFromRight hints line)
+solveLine :: Hints -> Line -> Line
+solveLine [] line = line
+solveLine hints [] = []
+solveLine hints line = maybeOverlaps line (placeFromLeft hints line) (placeFromRight hints line)
 
