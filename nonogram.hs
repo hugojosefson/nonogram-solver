@@ -43,7 +43,7 @@ placeFromRight hints line =
 
 reverseBackPlacedLine :: Maybe Line -> Maybe Line
 reverseBackPlacedLine Nothing = Nothing
-reverseBackPlacedLine (Just line)
+reverseBackPlacedLine (Just line) = Just(fmap reverseClearRequest (reverse line))
 
 reverseHintIndex :: Line -> HintIndex -> HintIndex
 reverseHintIndex line hintIndex = (length line) - 1 - hintIndex
