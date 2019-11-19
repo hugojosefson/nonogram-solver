@@ -75,7 +75,14 @@ placeFromLeft [] [] = Just []
 placeFromLeft [Hint _ 0] [] = Just []
 placeFromLeft hints [] = Nothing
 placeFromLeft [] line = placeClear line
-placeFromLeft ((Hint _ 0):hints) (Unknown:line) = prepend (Clear $ Requested After) (placeFromLeft hints line)
+placeFromLeft ((Hint _ 0):hints) (Unknown:line) =
+  let
+    maybePlaced = placeFromLeft hints line
+  in
+    case (maybePlaced) of
+      Nothing -> Nothing
+      Just placed -> Just ((Clear $ Requested After):placed)
+
 placeFromLeft ((Hint _ 0):hints) (Clear c:line) = prepend (Clear c) (placeFromLeft hints line)
 placeFromLeft ((Hint name value):hints) (Unknown:line) = prepend (ProbablyHint name) (placeFromLeft ((Hint name $ value - 1):hints) line)
 placeFromLeft ((Hint name value):hints) (Filled:line) = prepend Filled (placeFromLeft ((Hint name $ value - 1):hints) line)
