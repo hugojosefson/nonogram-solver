@@ -126,14 +126,6 @@ placeFromLeft (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
               Nothing -> Nothing
               Just placed' -> Just ((Clear $ Requested Outer):placed')
 
--- *Main> fmap lineToString $ placeFromLeft  (intsToHints [2,5]) (stringToLine "              *")
--- Just "11]_______0000*"
--- *Main> fmap lineToString $ placeFromRight   (intsToHints [2,5]) (stringToLine "              *")
--- Just "______]11]0000*"
--- *Main> fmap lineToString $ solveLine (intsToHints [2,5]) (stringToLine "              *")
--- Just "          *****"
--- *Main> TODO place (Clear $ Requested Before) on the cell before a new hint, unless we backtrack
-
 
 -- We are placing a hint, and the cell is filled.
 -- Continue recursing after shortening the hint and remaining line.
@@ -176,7 +168,17 @@ overlap3 _ (Clear (Requested After)) (Clear (Requested After)) = Clear Decided
 overlap3 _ (Clear (Requested Before)) (Clear (Requested Before)) = Clear Decided
 overlap3 _ (Clear (Requested After)) (Clear (Requested Before)) = Clear Decided
 overlap3 _ (Clear (Requested Before)) (Clear (Requested After)) = Clear Decided
+overlap3 _ (Clear (Requested Outer)) (Clear (Requested _)) = Clear Decided
+overlap3 _ (Clear (Requested _)) (Clear (Requested Outer)) = Clear Decided
 overlap3 c _ _ = c
+
+-- *Main> fmap lineToString $ fmap markAround $ placeFromLeft  (intsToHints [2,5]) (stringToLine "       *   ")
+-- Just "11]0000*]__"
+-- *Main> fmap lineToString $ fmap markAround $ placeFromRight   (intsToHints [2,5]) (stringToLine "       *   ")
+-- Just "__]11]0*000"
+-- *Main> fmap lineToString $ solveLine (intsToHints [2,5]) (stringToLine "       *   ")
+-- Just "  .   **   "
+-- *Main> TODO: Clear Requested After, Clear Requested Before should include which HintName they belong to.
 
 markAround :: Line -> Line
 markAround [] = []
