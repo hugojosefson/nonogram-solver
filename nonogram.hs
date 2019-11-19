@@ -12,7 +12,7 @@ data ClearLocation =
 
 instance Show Cell where
   show Unknown = " "
-  show Filled = "X"
+  show Filled = "*"
   show (ProbablyHint a) = show a
   show (Clear Decided) = "."
   show (Clear (Requested Before)) = "["
@@ -63,66 +63,62 @@ placeClear (cell:line) =
     canClearCell = canClear cell
     maybeClearedLine = placeClear line
   in
-    if canClearCell then fmap (\line -> ((Clear $ Requested Middle):line)) maybeClearedLine
+    if canClearCell then fmap (\line -> ((Clear Decided):line)) maybeClearedLine
     else Nothing
 
-placeHints :: Hints -> Line -> (HintName -> HintName) -> Maybe Line
-placeHints [] [] _ = Just []
-placeHints [Hint name 0] [] _ = Just []
-placeHints hints [] _ = Nothing
-placeHints [] line _ = placeClear line
-placeHints ((Hint name 0):hints) (Unknown:line) hnm = prepend ((Clear $ Requested Middle)) (placeHints hints line hnm)
-placeHints ((Hint name value):hints) (Unknown:line) hnm = prepend (ProbablyHint $ hnm name) (placeHints ((Hint name $ value - 1):hints) line hnm)
-placeHints ((Hint name value):hints) (Filled:line) hnm = prepend Filled (placeHints ((Hint name $ value - 1):hints) line hnm)
-placeHints ((Hint name value):hints) (_:line) _ = Nothing
+placeFromLeft :: Hints -> Line -> Maybe Line
+placeFromLeft [] [] = Just []
+placeFromLeft [Hint _ 0] [] = Just []
+placeFromLeft hints [] = Nothing
+placeFromLeft [] line = placeClear line
+placeFromLeft ((Hint _ 0):hints) (Unknown:line) = prepend (Clear $ Requested After) (placeFromLeft hints line)
+placeFromLeft ((Hint _ 0):hints) (Clear c:line) = prepend (Clear c) (placeFromLeft hints line)
+placeFromLeft ((Hint name value):hints) (Unknown:line) = prepend (ProbablyHint name) (placeFromLeft ((Hint name $ value - 1):hints) line)
+placeFromLeft ((Hint name value):hints) (Filled:line) = prepend Filled (placeFromLeft ((Hint name $ value - 1):hints) line)
+placeFromLeft ((Hint name value):hints) (_:line) = Nothing
 -- TODO backtrack, and retry differently, if we're on the wrong track
 
 prepend :: Cell -> Maybe Line -> Maybe Line
 prepend _ Nothing = Nothing
 prepend cell (Just(line)) = Just((cell:line))
 
-placeFromLeft :: Hints -> Line -> Maybe Line
-placeFromLeft hints line = placeHints hints line id
-
 placeFromRight :: Hints -> Line -> Maybe Line
 placeFromRight hints line =
   let
+    numberOfHints = length hints
     rHints = reverse hints
     rLine = reverse line
-    placedFromLeft = placeHints rHints rLine (reverseHintName $ length rHints)
+    maybePlacedLine = placeFromLeft rHints rLine
   in
-    reverseBackPlacedLine placedFromLeft
+    fmap reverse maybePlacedLine
 
-reverseBackPlacedLine :: Maybe Line -> Maybe Line
-reverseBackPlacedLine Nothing = Nothing
-reverseBackPlacedLine (Just line) = Just(fmap reverseClearRequest (reverse line))
+maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Maybe Line
+maybeOverlaps line Nothing Nothing = Nothing
+maybeOverlaps line (Just a) Nothing = Just (zipWith overlap2 line a)
+maybeOverlaps line Nothing (Just b) = Just (zipWith overlap2 line b)
+maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlap3 line a b)
 
-reverseHintName :: Int -> HintName -> HintName
-reverseHintName hintsLength (HintName a) = HintName (hintsLength - 1 - a)
+overlap2 :: Cell -> Cell -> Cell
+overlap2 Filled Filled = Filled
+overlap2 c (ProbablyHint a) = Filled
+overlap2 c Unknown = c
+overlap2 (Clear Decided) (Clear _) = Clear Decided
+overlap2 c _ = c
 
-reverseClearRequest :: Cell -> Cell
-reverseClearRequest (Clear (Requested Before)) = Clear (Requested After)
-reverseClearRequest (Clear (Requested After)) = Clear (Requested Before)
-reverseClearRequest x = x
-
-maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Line
-maybeOverlaps line Nothing Nothing = line
-maybeOverlaps line Nothing (Just b) = line
-maybeOverlaps line (Just a) Nothing = line
-maybeOverlaps line (Just a) (Just b) = zipWith3 overlap line a b
-
-overlap :: Cell -> Cell -> Cell -> Cell
-overlap _ Filled Filled = Filled
-overlap c (ProbablyHint a) (ProbablyHint b) =
+overlap3 :: Cell -> Cell -> Cell -> Cell
+overlap3 _ Filled Filled = Filled
+overlap3 c (ProbablyHint a) (ProbablyHint b) =
   if a == b then Filled
   else c
-overlap _ (ProbablyHint a) Unknown = Filled
-overlap _ Unknown (ProbablyHint a) = Filled
-overlap _ (Clear Decided) (Clear Decided) = Clear Decided
-overlap c _ _ = c
+overlap3 _ (ProbablyHint a) Unknown = Filled
+overlap3 _ Unknown (ProbablyHint a) = Filled
+overlap3 _ (Clear Decided) (Clear Decided) = Clear Decided
+overlap3 _ (Clear (Requested After)) (Clear (Requested After)) = Clear Decided
+overlap3 _ (Clear (Requested Before)) (Clear (Requested Before)) = Clear Decided
+overlap3 c _ _ = c
 
-solveLine :: Hints -> Line -> Line
-solveLine [] line = line
-solveLine hints [] = []
+solveLine :: Hints -> Line -> Maybe Line
+solveLine [] line = Just line
+solveLine hints [] = Just []
 solveLine hints line = maybeOverlaps line (placeFromLeft hints line) (placeFromRight hints line)
 
