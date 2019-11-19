@@ -98,21 +98,13 @@ placeFromLeft ((Hint _ 0 _):hints) (Unknown:line) =
 
 -- We have just finished placing one hint, and its value is down to 0.
 -- There is already a Clear in the cell to the right, so we'll keep that as padding.
-placeFromLeft (hint@(Hint _ 0 isFirstCell):hints) (Clear c:line) =
+placeFromLeft (hint@(Hint _ 0 _):hints) (Clear c:line) =
   let
     maybePlaced = placeFromLeft hints line
   in
     case maybePlaced of
+      Nothing -> Nothing
       Just placed -> Just ((Clear c):placed)
-      Nothing -> case isFirstCell of
-        False -> Nothing
-        True ->
-          let
-            maybePlaced' = placeFromLeft (hint:hints) line
-          in
-            case maybePlaced' of
-              Nothing -> Nothing
-              Just placed' -> Just ((Clear c):placed')
 
 
 -- We are placing a hint, and there is room.
