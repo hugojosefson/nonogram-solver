@@ -1,3 +1,6 @@
+import Numeric (showHex)
+import Data.Text.Internal.Read (hexDigitToInt)
+
 data Cell =
   Unknown | Filled | Clear ClearReason | ProbablyHint HintName
 
@@ -9,10 +12,11 @@ data ClearLocation =
 
 instance Show Cell where
   show Unknown = " "
-  show Filled = "#"
+  show Filled = "X"
   show (ProbablyHint a) = show a
-  show (Clear Decided) = "x"
+  show (Clear Decided) = "."
   show (Clear (Requested Before)) = "["
+  show (Clear (Requested Middle)) = "_"
   show (Clear (Requested After)) = "]"
 
 lineToString :: Line -> String
@@ -23,10 +27,12 @@ stringToLine = fmap charToCell
 
 charToCell :: Char -> Cell
 charToCell ' ' = Unknown
-charToCell '#' = Filled
-charToCell 'x' = Clear Decided
+charToCell '*' = Filled
+charToCell '.' = Clear Decided
 charToCell '[' = Clear (Requested Before)
+charToCell '_' = Clear (Requested Middle)
 charToCell ']' = Clear (Requested After)
+charToCell c = ProbablyHint $ HintName $ hexDigitToInt c
 
 type Line = [Cell]
 type Hints = [Hint]
@@ -40,7 +46,10 @@ instance Ord Hint where
   compare h1 h2 = compare (name h1) (name h2)
 
 data HintName = HintName Int
-  deriving (Read, Show, Eq, Ord)
+  deriving (Read, Eq, Ord)
+
+instance Show HintName where
+  show (HintName a) = showHex a ""
 
 canClear :: Cell -> Bool
 canClear (Clear _) = True
