@@ -92,40 +92,57 @@ placeFromLeft ((Hint _ 0 _):hints) (Unknown:line) =
   let
     maybePlaced = placeFromLeft hints line
   in
-    case (maybePlaced) of
+    case maybePlaced of
       Nothing -> Nothing
       Just placed -> Just ((Clear $ Requested After):placed)
 
 -- We have just finished placing one hint, and its value is down to 0.
 -- There is already a Clear in the cell to the right, so we'll keep that as padding.
-placeFromLeft ((Hint _ 0 _):hints) (Clear c:line) =
+placeFromLeft (hint@(Hint _ 0 isFirstCell):hints) (Clear c:line) =
   let
     maybePlaced = placeFromLeft hints line
   in
-    case (maybePlaced) of
-      Nothing -> Nothing
+    case maybePlaced of
       Just placed -> Just ((Clear c):placed)
+      Nothing -> case isFirstCell of
+        False -> Nothing
+        True ->
+          let
+            maybePlaced' = placeFromLeft (hint:hints) line
+          in
+            case maybePlaced' of
+              Nothing -> Nothing
+              Just placed' -> Just ((Clear c):placed')
+
 
 -- We are placing a hint, and there is room.
 -- Continue recursing after shortening the hint and remaining line.
-placeFromLeft ((Hint name value isFirstCell):hints) (Unknown:line) =
+placeFromLeft (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
   let
     shortenedHint = Hint name (value - 1) False
     maybePlaced = placeFromLeft (shortenedHint:hints) line
   in
-    case (maybePlaced) of
-      Nothing -> Nothing
+    case maybePlaced of
       Just placed -> Just ((ProbablyHint name):placed)
+      Nothing -> case isFirstCell of
+        False -> Nothing
+        True ->
+          let
+            maybePlaced' = placeFromLeft (hint:hints) line
+          in
+            case maybePlaced' of
+              Nothing -> Nothing
+              Just placed' -> Just (Unknown:placed')
 
 
 -- We are placing a hint, and the cell is filled.
 -- Continue recursing after shortening the hint and remaining line.
-placeFromLeft ((Hint name value isFirstCell):hints) (Filled:line) =
+placeFromLeft (hint@(Hint name value isFirstCell):hints) (Filled:line) =
   let
     shortenedHint = Hint name (value - 1) False
     maybePlaced = placeFromLeft (shortenedHint:hints) line
   in
-    case (maybePlaced) of
+    case maybePlaced of
       Nothing -> Nothing
       Just placed -> Just (Filled:placed)
 
@@ -149,20 +166,11 @@ maybeOverlaps line (Just a) Nothing = Nothing
 maybeOverlaps line Nothing (Just b) = Nothing
 maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlap3 line a b)
 
-overlap2 :: Cell -> Cell -> Cell
-overlap2 Filled Filled = Filled
-overlap2 c (ProbablyHint a) = Filled
-overlap2 c Unknown = c
-overlap2 (Clear Decided) (Clear _) = Clear Decided
-overlap2 c _ = c
-
 overlap3 :: Cell -> Cell -> Cell -> Cell
 overlap3 _ Filled Filled = Filled
 overlap3 c (ProbablyHint a) (ProbablyHint b) =
   if a == b then Filled
   else c
-overlap3 _ (ProbablyHint a) Unknown = Filled
-overlap3 _ Unknown (ProbablyHint a) = Filled
 overlap3 _ (Clear Decided) (Clear Decided) = Clear Decided
 overlap3 _ (Clear (Requested After)) (Clear (Requested After)) = Clear Decided
 overlap3 _ (Clear (Requested Before)) (Clear (Requested Before)) = Clear Decided
