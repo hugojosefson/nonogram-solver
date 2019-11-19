@@ -86,7 +86,7 @@ placeFromLeft hints [] = Nothing
 placeFromLeft [] line = placeClear line
 
 -- We have just finished placing one hint, and its value is down to 0.
--- There is room for a (Clear $ Requested After) in the cell to the right, so we'll place it there or padding.
+-- There is room for a (Clear $ Requested After) in the cell to the right, so we'll place it there as padding.
 placeFromLeft ((Hint _ 0):hints) (Unknown:line) =
   let
     maybePlaced = placeFromLeft hints line
