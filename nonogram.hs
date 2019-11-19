@@ -178,19 +178,21 @@ overlap3 _ (Clear (Requested After)) (Clear (Requested Before)) = Clear Decided
 overlap3 _ (Clear (Requested Before)) (Clear (Requested After)) = Clear Decided
 overlap3 c _ _ = c
 
-markBefore :: Line -> Line
-markBefore [] = []
-markBefore ((Clear (Requested Outer)):Filled:cells) = ((Clear (Requested Before)):Filled:(markBefore cells))
-markBefore ((Clear (Requested Outer)):(ProbablyHint hn):cells) = ((Clear (Requested Before)):(ProbablyHint hn):(markBefore cells))
-markBefore (cell:cells) = (cell:(markBefore cells))
+markAround :: Line -> Line
+markAround [] = []
+markAround ((Clear (Requested Outer)):Filled:cells) = ((Clear (Requested Before)):Filled:(markAround cells))
+markAround ((Clear (Requested Outer)):(ProbablyHint hn):cells) = ((Clear (Requested Before)):(ProbablyHint hn):(markAround cells))
+markAround (Filled:(Clear (Requested Outer)):cells) = (Filled:(Clear (Requested Before)):(markAround cells))
+markAround ((ProbablyHint hn):(Clear (Requested Outer)):cells) = ((ProbablyHint hn):(Clear (Requested Before)):(markAround cells))
+markAround (cell:cells) = (cell:(markAround cells))
 
 solveLine :: Hints -> Line -> Maybe Line
 solveLine [] line = Just line
 solveLine hints [] = Just []
 solveLine hints line =
   let
-    maybeFromLeft = fmap markBefore $ placeFromLeft hints line
-    maybeFromRight = fmap markBefore $ placeFromRight hints line
+    maybeFromLeft = fmap markAround $ placeFromLeft hints line
+    maybeFromRight = fmap markAround $ placeFromRight hints line
   in
     maybeOverlaps line maybeFromLeft maybeFromRight
 
