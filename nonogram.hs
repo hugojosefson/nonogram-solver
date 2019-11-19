@@ -75,6 +75,9 @@ placeFromLeft [] [] = Just []
 placeFromLeft [Hint _ 0] [] = Just []
 placeFromLeft hints [] = Nothing
 placeFromLeft [] line = placeClear line
+
+-- We have just finished placing one hint, and its value is down to 0.
+-- There is room for a (Clear $ Requested After) in the cell to the right, so we'll place it there or padding.
 placeFromLeft ((Hint _ 0):hints) (Unknown:line) =
   let
     maybePlaced = placeFromLeft hints line
@@ -83,15 +86,42 @@ placeFromLeft ((Hint _ 0):hints) (Unknown:line) =
       Nothing -> Nothing
       Just placed -> Just ((Clear $ Requested After):placed)
 
-placeFromLeft ((Hint _ 0):hints) (Clear c:line) = prepend (Clear c) (placeFromLeft hints line)
-placeFromLeft ((Hint name value):hints) (Unknown:line) = prepend (ProbablyHint name) (placeFromLeft ((Hint name $ value - 1):hints) line)
-placeFromLeft ((Hint name value):hints) (Filled:line) = prepend Filled (placeFromLeft ((Hint name $ value - 1):hints) line)
-placeFromLeft ((Hint name value):hints) (_:line) = Nothing
--- TODO backtrack, and retry differently, if we're on the wrong track
+-- We have just finished placing one hint, and its value is down to 0.
+-- There is already a Clear in the cell to the right, so we'll keep that as padding.
+placeFromLeft ((Hint _ 0):hints) (Clear c:line) =
+  let
+    maybePlaced = placeFromLeft hints line
+  in
+    case (maybePlaced) of
+      Nothing -> Nothing
+      Just placed -> Just ((Clear c):placed)
 
-prepend :: Cell -> Maybe Line -> Maybe Line
-prepend _ Nothing = Nothing
-prepend cell (Just(line)) = Just((cell:line))
+-- We are placing a hint, and there is room.
+-- Continue recursing after shortening the hint and remaining line.
+placeFromLeft ((Hint name value):hints) (Unknown:line) =
+  let
+    shortenedHint = Hint name (value - 1)
+    maybePlaced = placeFromLeft (shortenedHint:hints) line
+  in
+    case (maybePlaced) of
+      Nothing -> Nothing
+      Just placed -> Just ((ProbablyHint name):placed)
+
+
+-- We are placing a hint, and the cell is filled.
+-- Continue recursing after shortening the hint and remaining line.
+placeFromLeft ((Hint name value):hints) (Filled:line) =
+  let
+    shortenedHint = Hint name (value - 1)
+    maybePlaced = placeFromLeft (shortenedHint:hints) line
+  in
+    case (maybePlaced) of
+      Nothing -> Nothing
+      Just placed -> Just (Filled:placed)
+
+-- We are placing a hint, but the cell is occupied
+placeFromLeft ((Hint name value):hints) (_:line) = Nothing
+
 
 placeFromRight :: Hints -> Line -> Maybe Line
 placeFromRight hints line =
@@ -105,8 +135,8 @@ placeFromRight hints line =
 
 maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Maybe Line
 maybeOverlaps line Nothing Nothing = Nothing
-maybeOverlaps line (Just a) Nothing = Just (zipWith overlap2 line a)
-maybeOverlaps line Nothing (Just b) = Just (zipWith overlap2 line b)
+maybeOverlaps line (Just a) Nothing = Nothing
+maybeOverlaps line Nothing (Just b) = Nothing
 maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlap3 line a b)
 
 overlap2 :: Cell -> Cell -> Cell
