@@ -71,9 +71,18 @@ placeClear (cell:line) =
     else Nothing
 
 placeFromLeft :: Hints -> Line -> Maybe Line
+
+-- No hints in empty line
 placeFromLeft [] [] = Just []
+
+-- 0 size hint in empty line
 placeFromLeft [Hint _ 0] [] = Just []
+
+-- We have more hints to place, but have run out of space.
 placeFromLeft hints [] = Nothing
+
+-- We have just finished placing all hints, and there is some space left.
+-- Try to clear remaining space.
 placeFromLeft [] line = placeClear line
 
 -- We have just finished placing one hint, and its value is down to 0.
