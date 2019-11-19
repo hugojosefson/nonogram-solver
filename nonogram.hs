@@ -37,6 +37,10 @@ charToCell c = ProbablyHint $ HintName $ hexDigitToInt c
 type Line = [Cell]
 type Hints = [Hint]
 
+intsToHints :: [Int] -> Hints
+intsToHints [] = []
+intsToHints (n:ns) = (Hint (HintName (length ns)) n:intsToHints ns)
+
 data Hint = Hint { name :: HintName
                  , value :: Int
                  }
