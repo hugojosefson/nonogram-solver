@@ -39,10 +39,11 @@ type Hints = [Hint]
 
 intsToHints :: [Int] -> Hints
 intsToHints [] = []
-intsToHints (n:ns) = (Hint (HintName (length ns)) n:intsToHints ns)
+intsToHints (n:ns) = (Hint (HintName (length ns)) n True:intsToHints ns)
 
 data Hint = Hint { name :: HintName
                  , value :: Int
+                 , isFirstCell :: Bool
                  }
   deriving (Read, Show, Eq)
 
@@ -76,7 +77,7 @@ placeFromLeft :: Hints -> Line -> Maybe Line
 placeFromLeft [] [] = Just []
 
 -- 0 size hint in empty line
-placeFromLeft [Hint _ 0] [] = Just []
+placeFromLeft [Hint _ 0 _] [] = Just []
 
 -- We have more hints to place, but have run out of space.
 placeFromLeft hints [] = Nothing
@@ -87,7 +88,7 @@ placeFromLeft [] line = placeClear line
 
 -- We have just finished placing one hint, and its value is down to 0.
 -- There is room for a (Clear $ Requested After) in the cell to the right, so we'll place it there as padding.
-placeFromLeft ((Hint _ 0):hints) (Unknown:line) =
+placeFromLeft ((Hint _ 0 _):hints) (Unknown:line) =
   let
     maybePlaced = placeFromLeft hints line
   in
@@ -97,7 +98,7 @@ placeFromLeft ((Hint _ 0):hints) (Unknown:line) =
 
 -- We have just finished placing one hint, and its value is down to 0.
 -- There is already a Clear in the cell to the right, so we'll keep that as padding.
-placeFromLeft ((Hint _ 0):hints) (Clear c:line) =
+placeFromLeft ((Hint _ 0 _):hints) (Clear c:line) =
   let
     maybePlaced = placeFromLeft hints line
   in
@@ -107,9 +108,9 @@ placeFromLeft ((Hint _ 0):hints) (Clear c:line) =
 
 -- We are placing a hint, and there is room.
 -- Continue recursing after shortening the hint and remaining line.
-placeFromLeft ((Hint name value):hints) (Unknown:line) =
+placeFromLeft ((Hint name value isFirstCell):hints) (Unknown:line) =
   let
-    shortenedHint = Hint name (value - 1)
+    shortenedHint = Hint name (value - 1) False
     maybePlaced = placeFromLeft (shortenedHint:hints) line
   in
     case (maybePlaced) of
@@ -119,9 +120,9 @@ placeFromLeft ((Hint name value):hints) (Unknown:line) =
 
 -- We are placing a hint, and the cell is filled.
 -- Continue recursing after shortening the hint and remaining line.
-placeFromLeft ((Hint name value):hints) (Filled:line) =
+placeFromLeft ((Hint name value isFirstCell):hints) (Filled:line) =
   let
-    shortenedHint = Hint name (value - 1)
+    shortenedHint = Hint name (value - 1) False
     maybePlaced = placeFromLeft (shortenedHint:hints) line
   in
     case (maybePlaced) of
@@ -129,7 +130,7 @@ placeFromLeft ((Hint name value):hints) (Filled:line) =
       Just placed -> Just (Filled:placed)
 
 -- We are placing a hint, but the cell is occupied
-placeFromLeft ((Hint name value):hints) (_:line) = Nothing
+placeFromLeft ((Hint name value _):hints) (_:line) = Nothing
 
 
 placeFromRight :: Hints -> Line -> Maybe Line
