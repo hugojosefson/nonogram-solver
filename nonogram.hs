@@ -8,7 +8,7 @@ data ClearReason =
   Decided | Requested ClearLocation
 
 data ClearLocation =
-  Before | Middle | After
+  Before | Outer | After
 
 instance Show Cell where
   show Unknown = " "
@@ -16,7 +16,7 @@ instance Show Cell where
   show (ProbablyHint a) = show a
   show (Clear Decided) = "."
   show (Clear (Requested Before)) = "["
-  show (Clear (Requested Middle)) = "_"
+  show (Clear (Requested Outer)) = "_"
   show (Clear (Requested After)) = "]"
 
 lineToString :: Line -> String
@@ -30,7 +30,7 @@ charToCell ' ' = Unknown
 charToCell '*' = Filled
 charToCell '.' = Clear Decided
 charToCell '[' = Clear (Requested Before)
-charToCell '_' = Clear (Requested Middle)
+charToCell '_' = Clear (Requested Outer)
 charToCell ']' = Clear (Requested After)
 charToCell c = ProbablyHint $ HintName $ hexDigitToInt c
 
@@ -68,7 +68,7 @@ placeClear (cell:line) =
     canClearCell = canClear cell
     maybeClearedLine = placeClear line
   in
-    if canClearCell then fmap (\line -> ((Clear Decided):line)) maybeClearedLine
+    if canClearCell then fmap (\line -> ((Clear $ Requested Outer):line)) maybeClearedLine
     else Nothing
 
 placeFromLeft :: Hints -> Line -> Maybe Line
@@ -132,7 +132,15 @@ placeFromLeft (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
           in
             case maybePlaced' of
               Nothing -> Nothing
-              Just placed' -> Just (Unknown:placed')
+              Just placed' -> Just ((Clear $ Requested Outer):placed')
+
+-- *Main> fmap lineToString $ placeFromLeft  (intsToHints [2,5]) (stringToLine "              *")
+-- Just "11]_______0000*"
+-- *Main> fmap lineToString $ placeFromRight   (intsToHints [2,5]) (stringToLine "              *")
+-- Just "______]11]0000*"
+-- *Main> fmap lineToString $ solveLine (intsToHints [2,5]) (stringToLine "              *")
+-- Just "          *****"
+-- *Main> TODO place (Clear $ Requested Before) on the cell before a new hint, unless we backtrack
 
 
 -- We are placing a hint, and the cell is filled.
@@ -174,6 +182,10 @@ overlap3 c (ProbablyHint a) (ProbablyHint b) =
 overlap3 _ (Clear Decided) (Clear Decided) = Clear Decided
 overlap3 _ (Clear (Requested After)) (Clear (Requested After)) = Clear Decided
 overlap3 _ (Clear (Requested Before)) (Clear (Requested Before)) = Clear Decided
+overlap3 _ Unknown (Clear (Requested After)) = Clear Decided
+overlap3 _ (Clear (Requested Before)) Unknown = Clear Decided
+overlap3 _ Unknown (Clear (Requested Before)) = Clear Decided
+overlap3 _ (Clear (Requested After)) Unknown = Clear Decided
 overlap3 c _ _ = c
 
 solveLine :: Hints -> Line -> Maybe Line
