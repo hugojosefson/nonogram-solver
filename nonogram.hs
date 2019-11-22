@@ -174,7 +174,7 @@ overlap3 c _ _ = c
 
 -- *Main> fmap lineToString $ fmap markAround $ placeFromLeft  (intsToHints [2,5]) (stringToLine "       *   ")
 -- Just "11]0000*]__"
--- *Main> fmap lineToString $ fmap markAround $ placeFromRight   (intsToHints [2,5]) (stringToLine "       *   ")
+-- *Main> fmap lineToString $ fmap markAround $ placeFromRight (intsToHints [2,5]) (stringToLine "       *   ")
 -- Just "__]11]0*000"
 -- *Main> fmap lineToString $ solveLine (intsToHints [2,5]) (stringToLine "       *   ")
 -- Just "  .   **   "
