@@ -8,16 +8,16 @@ data ClearReason =
   Decided | Requested ClearLocation
 
 data ClearLocation =
-  Before | Outer | After
+  Before HintName | Outer | After HintName
 
 instance Show Cell where
   show Unknown = " "
   show Filled = "*"
   show (ProbablyHint a) = show a
   show (Clear Decided) = "."
-  show (Clear (Requested Before)) = "["
+  show (Clear (Requested (Before hn))) = "[Before" ++ show hn ++ "]"
   show (Clear (Requested Outer)) = "_"
-  show (Clear (Requested After)) = "]"
+  show (Clear (Requested (After hn))) = "[After" ++ show hn ++ "]"
 
 lineToString :: Line -> String
 lineToString = concatMap show
@@ -29,9 +29,7 @@ charToCell :: Char -> Cell
 charToCell ' ' = Unknown
 charToCell '*' = Filled
 charToCell '.' = Clear Decided
-charToCell '[' = Clear (Requested Before)
 charToCell '_' = Clear (Requested Outer)
-charToCell ']' = Clear (Requested After)
 charToCell c = ProbablyHint $ HintName $ hexDigitToInt c
 
 type Line = [Cell]
@@ -88,13 +86,13 @@ placeFromLeft [] line = placeClear line
 
 -- We have just finished placing one hint, and its value is down to 0.
 -- There is room for a (Clear $ Requested After) in the cell to the right, so we'll place it there as padding.
-placeFromLeft ((Hint _ 0 _):hints) (Unknown:line) =
+placeFromLeft ((Hint hn 0 _):hints) (Unknown:line) =
   let
     maybePlaced = placeFromLeft hints line
   in
     case maybePlaced of
       Nothing -> Nothing
-      Just placed -> Just ((Clear $ Requested After):placed)
+      Just placed -> Just ((Clear $ Requested (After hn)):placed)
 
 -- We have just finished placing one hint, and its value is down to 0.
 -- There is already a Clear in the cell to the right, so we'll keep that as padding.
@@ -149,8 +147,14 @@ placeFromRight hints line =
     rHints = reverse hints
     rLine = reverse line
     maybePlacedLine = placeFromLeft rHints rLine
+    maybeReversedLine = fmap reverse maybePlacedLine
   in
-    fmap reverse maybePlacedLine
+    fmap (\line -> fmap reverseClear line) maybeReversedLine
+
+reverseClear :: Cell -> Cell
+reverseClear (Clear (Requested (Before hn))) = Clear (Requested (After hn))
+reverseClear (Clear (Requested (After hn))) = Clear (Requested (Before hn))
+reverseClear a = a
 
 maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Maybe Line
 maybeOverlaps line Nothing Nothing = Nothing
@@ -164,28 +168,29 @@ overlap3 c (ProbablyHint a) (ProbablyHint b) =
   if a == b then Filled
   else c
 overlap3 _ (Clear Decided) (Clear Decided) = Clear Decided
-overlap3 _ (Clear (Requested After)) (Clear (Requested After)) = Clear Decided
-overlap3 _ (Clear (Requested Before)) (Clear (Requested Before)) = Clear Decided
-overlap3 _ (Clear (Requested After)) (Clear (Requested Before)) = Clear Decided
-overlap3 _ (Clear (Requested Before)) (Clear (Requested After)) = Clear Decided
+overlap3 _ (Clear (Requested (After a))) (Clear (Requested (After b)))
+  | a == b = Clear Decided 
+
+overlap3 _ (Clear (Requested (Before a))) (Clear (Requested (Before b)))
+  | a == b = Clear Decided 
+  
 overlap3 _ (Clear (Requested Outer)) (Clear (Requested _)) = Clear Decided
 overlap3 _ (Clear (Requested _)) (Clear (Requested Outer)) = Clear Decided
 overlap3 c _ _ = c
 
 -- *Main> fmap lineToString $ fmap markAround $ placeFromLeft  (intsToHints [2,5]) (stringToLine "       *   ")
--- Just "11]0000*]__"
+-- Just "11[After1]0000*[After0]__"
 -- *Main> fmap lineToString $ fmap markAround $ placeFromRight (intsToHints [2,5]) (stringToLine "       *   ")
--- Just "__]11]0*000"
+-- Just "__[Before1]11[Before0]0*000"
 -- *Main> fmap lineToString $ solveLine (intsToHints [2,5]) (stringToLine "       *   ")
--- Just "  .   **   "
--- *Main> TODO: Clear Requested After, Clear Requested Before should include which HintName they belong to.
+-- Just "      **   "
 
 markAround :: Line -> Line
 markAround [] = []
-markAround ((Clear (Requested Outer)):Filled:cells) = ((Clear (Requested Before)):Filled:(markAround cells))
-markAround ((Clear (Requested Outer)):(ProbablyHint hn):cells) = ((Clear (Requested Before)):(ProbablyHint hn):(markAround cells))
-markAround (Filled:(Clear (Requested Outer)):cells) = (Filled:(Clear (Requested Before)):(markAround cells))
-markAround ((ProbablyHint hn):(Clear (Requested Outer)):cells) = ((ProbablyHint hn):(Clear (Requested Before)):(markAround cells))
+markAround ((Clear (Requested Outer)):Filled:cells) = ((Clear (Requested Outer)):Filled:(markAround cells))
+markAround ((Clear (Requested Outer)):(ProbablyHint hn):cells) = ((Clear (Requested (Before hn))):(ProbablyHint hn):(markAround cells))
+markAround (Filled:(Clear (Requested Outer)):cells) = (Filled:(Clear (Requested Outer)):(markAround cells))
+markAround ((ProbablyHint hn):(Clear (Requested Outer)):cells) = ((ProbablyHint hn):(Clear (Requested (Before hn))):(markAround cells))
 markAround (cell:cells) = (cell:(markAround cells))
 
 solveLine :: Hints -> Line -> Maybe Line
