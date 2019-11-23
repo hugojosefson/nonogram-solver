@@ -1,6 +1,7 @@
-/node_modules/
 /.idea/
 /*.log
 .*.swp
 /.stack-work/
 /stale_outputs_checked
+nonogram-solver.cabal
+*~

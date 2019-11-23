@@ -1,0 +1,50 @@
+name:                nonogram-solver
+version:             0.1.0.0
+github:              "hugojosefson/nonogram-solver"
+license:             BSD3
+author:              "Hugo Josefson"
+maintainer:          "hugo@josefson.org"
+copyright:           "2019 Hugo Josefson"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/hugojosefson/nonogram-solver#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- split >= 0.2.3.3 && < 0.3
+- text >= 1.2.3.1 && < 2
+
+library:
+  source-dirs: src
+
+executables:
+  nonogram-solver-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - nonogram-solver
+
+tests:
+  nonogram-solver-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - nonogram-solver
