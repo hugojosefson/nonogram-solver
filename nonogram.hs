@@ -1,7 +1,7 @@
-import Numeric (showHex)
-import Data.Text.Internal.Read (hexDigitToInt)
 import Data.List (transpose, replicate)
 import Data.Maybe (fromMaybe)
+import Data.Text.Internal.Read (hexDigitToInt)
+import Numeric (showHex)
 
 data Cell =
   Unknown | Filled | Clear ClearReason | ProbablyHint HintName
@@ -184,8 +184,6 @@ overlap3 _ (Clear (Requested (After a))) (Clear (Requested (After b)))
 overlap3 _ (Clear (Requested (Before a))) (Clear (Requested (Before b)))
   | a == b = Clear Decided 
   
-overlap3 _ (Clear (Requested Outer)) (Clear (Requested _)) = Clear Decided
-overlap3 _ (Clear (Requested _)) (Clear (Requested Outer)) = Clear Decided
 overlap3 c _ _ = c
 
 markAround :: Line -> Line
@@ -289,4 +287,19 @@ solveGridUntilStable rowHintss columnHintss rows =
 untilStable :: (Eq a) => (a -> a) -> (a -> a)
 untilStable fn = until (\x -> fn x == x) fn
 
+printGrid :: Lines -> IO() 
 printGrid rows = putStrLn $ unlines $ fmap lineToString rows
+
+printGrid' :: Lines -> IO() 
+printGrid' rows = 
+  let
+    rowStrings = fmap lineToString rows
+    framedRows = fmap (surroundWith "|") rowStrings
+    framedRowLength = (foldr max) 0 $ fmap length framedRows
+    bar = [replicate framedRowLength '=']
+    framedRowStrings = surroundWith bar framedRows
+  in
+    putStrLn $ unlines $ framedRowStrings
+
+surroundWith :: [a] -> [a] -> [a]
+surroundWith around middle = around ++ middle ++ around
