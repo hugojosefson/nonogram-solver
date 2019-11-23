@@ -329,3 +329,7 @@ module Lib where
 -- We should however now continue with placing Clear in a separate run after placing Filled.
 -- TODO: Do a specific run to set any Clear cells around where we have identified:
 --         complete Hint
+--
+-- Idea: Instead of only trying filling from left and right, try all possible places the hints can fill.
+--       Then wherever no hint has been, Clear.
+--       And wherever has been filled in all possible cases, Filled.
