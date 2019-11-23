@@ -237,7 +237,31 @@ dColumnHintss = fmap intsToHints [  [3]
                                   , [2,3]
                                   ]
 
-dRows = replicate 15 $ replicate 15 Unknown
+mRowHintss = fmap intsToHints [ [2, 1]
+                              , [1,4]
+                              , [1,2,2]
+                              , [1,1,4]
+                              , [1,4,1]
+                              , [1,3,1]
+                              , [1,1,4]
+                              , [1,1,1]
+                              , [4]
+                              , [4]
+                              ]
+
+mColumnHintss = fmap intsToHints [  [2,2]
+                                  , [1,4]
+                                  , [2]
+                                  , [4]
+                                  , [2,3,2]
+                                  , [1,4,2]
+                                  , [1,2,1,2]
+                                  , [3,1,2]
+                                  , [4]
+                                  , [1,1]
+                                  ]
+
+mRows = replicate 10 $ replicate 10 Unknown
 
 solveGrid :: [Hints] -> [Hints] -> Lines -> Lines
 solveGrid rowHintss columnHintss rows =
@@ -260,3 +284,5 @@ solveGridUntilStable rowHintss columnHintss rows =
 
 untilStable :: (Eq a) => (a -> a) -> (a -> a)
 untilStable fn = until (\x -> fn x == x) fn
+
+printGrid rows = putStrLn $ unlines $ fmap lineToString rows
