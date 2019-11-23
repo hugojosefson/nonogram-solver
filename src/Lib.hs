@@ -7,25 +7,15 @@ module Lib where
     import Numeric (showHex)
     
     data Cell =
-      Unknown | Filled | Clear ClearReason | ProbablyHint HintName
+      Unknown | Clear | Filled | SuggestClear | SuggestHintName HintName
       deriving (Eq)
-    
-    data ClearReason =
-      Decided | Requested ClearLocation
-      deriving (Eq)
-    
-    data ClearLocation =
-      Before HintName | Outer | After HintName
-      deriving (Eq)
-    
+
     instance Show Cell where
       show Unknown = " "
       show Filled = "*"
-      show (ProbablyHint a) = show a
-      show (Clear Decided) = "."
-      show (Clear (Requested (Before hn))) = "[Before" ++ show hn ++ "]"
-      show (Clear (Requested Outer)) = "_"
-      show (Clear (Requested (After hn))) = "[After" ++ show hn ++ "]"
+      show Clear = "."
+      show SuggestClear = "_"
+      show (SuggestHintName (HintName a)) = show a
     
     lineToString :: Line -> String
     lineToString = concatMap show
@@ -36,9 +26,9 @@ module Lib where
     charToCell :: Char -> Cell
     charToCell ' ' = Unknown
     charToCell '*' = Filled
-    charToCell '.' = Clear Decided
-    charToCell '_' = Clear (Requested Outer)
-    charToCell c = ProbablyHint $ HintName $ hexDigitToInt c
+    charToCell '.' = Clear
+    charToCell '_' = SuggestClear
+    charToCell c = SuggestHintName $ HintName $ hexDigitToInt c
     
     type Line = [Cell]
     type Hints = [Hint]
@@ -64,20 +54,24 @@ module Lib where
       show (HintName a) = showHex a ""
     
     canClear :: Cell -> Bool
-    canClear (Clear _) = True
+    canClear SuggestClear = True
     canClear Unknown = True
     canClear _ = False
     
     placeClear :: Line -> Maybe Line
     placeClear [] = Just []
+    placeClear (Clear:line) = Just (Clear:line)
     placeClear (cell:line) =
       let
         canClearCell = canClear cell
         maybeClearedLine = placeClear line
       in
-        if canClearCell then fmap (\line -> ((Clear $ Requested Outer):line)) maybeClearedLine
+        if canClearCell then fmap (prefixWith SuggestClear) maybeClearedLine
         else Nothing
     
+    prefixWith :: a -> [a] -> [a]
+    prefixWith x xs = (x:xs)
+
     -- TODO: Don't consider Clear cells when checking overlaps.
     -- TODO: Do a specific run to set any Clear cells around where we have identified:
     --         complete Hint
@@ -98,24 +92,34 @@ module Lib where
     placeFromLeft [] line = placeClear line
     
     -- We have just finished placing one hint, and its value is down to 0.
-    -- There is room for a (Clear $ Requested After) in the cell to the right, so we'll place it there as padding.
+    -- There is room for a SuggestClear in the cell to the right, so we'll place it there as padding.
     placeFromLeft ((Hint hn 0 _):hints) (Unknown:line) =
       let
         maybePlaced = placeFromLeft hints line
       in
         case maybePlaced of
           Nothing -> Nothing
-          Just placed -> Just ((Clear $ Requested (After hn)):placed)
+          Just placed -> Just (SuggestClear:placed)
     
     -- We have just finished placing one hint, and its value is down to 0.
     -- There is already a Clear in the cell to the right, so we'll keep that as padding.
-    placeFromLeft (hint@(Hint _ 0 _):hints) (Clear c:line) =
+    placeFromLeft (hint@(Hint _ 0 _):hints) (Clear:line) =
       let
         maybePlaced = placeFromLeft hints line
       in
         case maybePlaced of
           Nothing -> Nothing
-          Just placed -> Just ((Clear c):placed)
+          Just placed -> Just (Clear:placed)
+    
+    -- We have just finished placing one hint, and its value is down to 0.
+    -- There is already a SuggestClear in the cell to the right, so we'll keep that as padding.
+    placeFromLeft (hint@(Hint _ 0 _):hints) (SuggestClear:line) =
+      let
+        maybePlaced = placeFromLeft hints line
+      in
+        case maybePlaced of
+          Nothing -> Nothing
+          Just placed -> Just (SuggestClear:placed)
     
     
     -- We are placing a hint, and there is room.
@@ -126,7 +130,7 @@ module Lib where
         maybePlaced = placeFromLeft (shortenedHint:hints) line
       in
         case maybePlaced of
-          Just placed -> Just ((ProbablyHint name):placed)
+          Just placed -> Just ((SuggestHintName name):placed)
           Nothing -> case isFirstCell of
             False -> Nothing
             True ->
@@ -135,7 +139,7 @@ module Lib where
               in
                 case maybePlaced' of
                   Nothing -> Nothing
-                  Just placed' -> Just ((Clear $ Requested Outer):placed')
+                  Just placed' -> Just (SuggestClear:placed')
     
     
     -- We are placing a hint, and the cell is filled.
@@ -162,12 +166,7 @@ module Lib where
         maybePlacedLine = placeFromLeft rHints rLine
         maybeReversedLine = fmap reverse maybePlacedLine
       in
-        fmap (\line -> fmap reverseClear line) maybeReversedLine
-    
-    reverseClear :: Cell -> Cell
-    reverseClear (Clear (Requested (Before hn))) = Clear (Requested (After hn))
-    reverseClear (Clear (Requested (After hn))) = Clear (Requested (Before hn))
-    reverseClear a = a
+        maybeReversedLine
     
     maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Maybe Line
     maybeOverlaps line Nothing Nothing = Nothing
@@ -177,24 +176,18 @@ module Lib where
     
     overlap3 :: Cell -> Cell -> Cell -> Cell
     overlap3 _ Filled Filled = Filled
-    overlap3 c (ProbablyHint a) (ProbablyHint b) =
+    overlap3 c (SuggestHintName a) (SuggestHintName b) =
       if a == b then Filled
       else c
-    overlap3 _ (Clear Decided) (Clear Decided) = Clear Decided
-    overlap3 _ (Clear (Requested (After a))) (Clear (Requested (After b)))
-      | a == b = Clear Decided 
-    
-    overlap3 _ (Clear (Requested (Before a))) (Clear (Requested (Before b)))
-      | a == b = Clear Decided 
-      
+    overlap3 _ Clear Clear = Clear
     overlap3 c _ _ = c
     
     markAround :: Line -> Line
     markAround [] = []
-    markAround ((Clear (Requested Outer)):Filled:cells) = ((Clear (Requested Outer)):Filled:(markAround cells))
-    markAround ((Clear (Requested Outer)):(ProbablyHint hn):cells) = ((Clear (Requested (Before hn))):(ProbablyHint hn):(markAround cells))
-    markAround (Filled:(Clear (Requested Outer)):cells) = (Filled:(Clear (Requested Outer)):(markAround cells))
-    markAround ((ProbablyHint hn):(Clear (Requested Outer)):cells) = ((ProbablyHint hn):(Clear (Requested (Before hn))):(markAround cells))
+    markAround (SuggestClear:Filled:cells) = (SuggestClear:Filled:(markAround cells))
+    markAround (SuggestClear:(SuggestHintName hn):cells) = (SuggestClear:(SuggestHintName hn):(markAround cells))
+    markAround (Filled:SuggestClear:cells) = (Filled:SuggestClear:(markAround cells))
+    markAround ((SuggestHintName hn):SuggestClear:cells) = ((SuggestHintName hn):SuggestClear:(markAround cells))
     markAround (cell:cells) = (cell:(markAround cells))
     
     solveLine :: Hints -> Line -> Maybe Line
