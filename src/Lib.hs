@@ -168,15 +168,15 @@ module Lib where
     maybeOverlaps line Nothing Nothing = Nothing
     maybeOverlaps line (Just a) Nothing = Nothing
     maybeOverlaps line Nothing (Just b) = Nothing
-    maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlap3 line a b)
+    maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlapFill line a b)
     
-    overlap3 :: Cell -> Cell -> Cell -> Cell
-    overlap3 _ Clear Clear = Clear
-    overlap3 _ Filled Filled = Filled
-    overlap3 c (SuggestHintName a) (SuggestHintName b) =
+    overlapFill :: Cell -> Cell -> Cell -> Cell
+    overlapFill _ Clear Clear = Clear
+    overlapFill _ Filled Filled = Filled
+    overlapFill c (SuggestHintName a) (SuggestHintName b) =
       if a == b then Filled
       else c
-    overlap3 c _ _ = c
+    overlapFill c _ _ = c
     
     markAround :: Line -> Line
     markAround [] = []
