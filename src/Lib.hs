@@ -99,24 +99,13 @@ module Lib where
     
     -- We have just finished placing one hint, and its value is down to 0.
     -- There is already a Clear in the cell to the right, so we'll keep that as padding.
-    placeFromLeft (hint@(Hint _ 0 _):hints) (Clear:line) =
+    placeFromLeft ((Hint _ 0 _):hints) (Clear:line) =
       let
         maybePlaced = placeFromLeft hints line
       in
         case maybePlaced of
           Nothing -> Nothing
           Just placed -> Just (Clear:placed)
-    
-    -- We have just finished placing one hint, and its value is down to 0.
-    -- There is already a SuggestClear in the cell to the right, so we'll keep that as padding.
-    placeFromLeft (hint@(Hint _ 0 _):hints) (SuggestClear:line) =
-      let
-        maybePlaced = placeFromLeft hints line
-      in
-        case maybePlaced of
-          Nothing -> Nothing
-          Just placed -> Just (SuggestClear:placed)
-    
     
     -- We are placing a hint, and there is room.
     -- Continue recursing after shortening the hint and remaining line.
@@ -149,8 +138,8 @@ module Lib where
           Nothing -> Nothing
           Just placed -> Just (Filled:placed)
     
-    -- We are placing a hint, but the cell is occupied
-    placeFromLeft ((Hint name value _):hints) (_:line) = Nothing
+    -- We are placing a hint, but the cell is already marked Clear
+    placeFromLeft ((Hint _ _ _):hints) (Clear:line) = Nothing
     
     
     placeFromRight :: Hints -> Line -> Maybe Line
