@@ -167,21 +167,13 @@ module Lib where
       else c
     overlapFill c _ _ = c
     
-    markAround :: Line -> Line
-    markAround [] = []
-    markAround (SuggestClear:Filled:cells) = (SuggestClear:Filled:(markAround cells))
-    markAround (SuggestClear:(SuggestHintName hn):cells) = (SuggestClear:(SuggestHintName hn):(markAround cells))
-    markAround (Filled:SuggestClear:cells) = (Filled:SuggestClear:(markAround cells))
-    markAround ((SuggestHintName hn):SuggestClear:cells) = ((SuggestHintName hn):SuggestClear:(markAround cells))
-    markAround (cell:cells) = (cell:(markAround cells))
-    
     solveLine :: Hints -> Line -> Maybe Line
     solveLine [] line = Just line
     solveLine hints [] = Just []
     solveLine hints line =
       let
-        maybeFromLeft = fmap markAround $ placeFromLeft hints line
-        maybeFromRight = fmap markAround $ placeFromRight hints line
+        maybeFromLeft = placeFromLeft hints line
+        maybeFromRight = placeFromRight hints line
       in
         maybeOverlaps line maybeFromLeft maybeFromRight
     
