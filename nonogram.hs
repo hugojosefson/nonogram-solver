@@ -294,7 +294,7 @@ printGridFramed :: Lines -> IO()
 printGridFramed rows = 
   let
     rowStrings = fmap lineToString rows
-    framedRows = fmap (surroundWith "|") rowStrings
+    framedRows = fmap (surroundWith "‖") rowStrings
     framedRowLength = (foldr max) 0 $ fmap length framedRows
     bar = [replicate framedRowLength '=']
     framedRowStrings = surroundWith bar framedRows
