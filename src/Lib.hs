@@ -347,7 +347,7 @@ module Lib where
 -- At least this isn't wrong:
 -- printGridMullioned $ solveGridUntilStable mRowHintss mColumnHintss mRows
 -- 
--- We should however now continue with placing Clear Decided in a separate run after placing Filled.
+-- We should however now continue with placing Clear in a separate run after placing Filled.
 -- TODO: Do a specific run to set any Clear cells around where we have identified:
 --         complete Hint
     
