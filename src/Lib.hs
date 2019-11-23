@@ -2,7 +2,7 @@ module Lib where
 
     import Data.List (intersperse, transpose, replicate)
     import Data.List.Split (chunksOf)
-    import Data.Maybe (fromMaybe)
+    import Data.Maybe (catMaybes, fromMaybe)
     import Data.Text.Internal.Read (hexDigitToInt)
     import Numeric (showHex)
     
@@ -333,3 +333,114 @@ module Lib where
 -- Idea: Instead of only trying filling from left and right, try all possible places the hints can fill.
 --       Then wherever no hint has been, Clear.
 --       And wherever has been filled in all possible cases, Filled.
+
+    reducePossibleCell :: Cell -> Cell -> Cell
+    reducePossibleCell Clear Clear = Clear
+    reducePossibleCell Filled Filled = Filled
+    reducePossibleCell SuggestClear SuggestClear = Clear
+    reducePossibleCell Clear SuggestClear = Clear
+    reducePossibleCell SuggestClear Clear = Clear
+    reducePossibleCell (SuggestHintName a) (SuggestHintName b) =
+      if a == b then SuggestHintName a
+      else Unknown
+    reducePossibleCell _ _ = Unknown
+
+    resolvePossibleCells :: [Cell] -> Cell
+    resolvePossibleCells [] = Unknown
+    resolvePossibleCells [c] = c
+    resolvePossibleCells cells = foldr1 reducePossibleCell cells
+      
+    overlapPossibilities :: [Line] -> Line
+    overlapPossibilities lines =
+      let
+        columns = transpose lines
+        lineOfCertainties = fmap resolvePossibleCells columns
+      in
+        lineOfCertainties
+
+    findPossibilities :: Hints -> Line -> [Line]
+    findPossibilities hints line = catMaybes $ attemptPlace hints line
+
+    attemptPlace :: Hints -> Line -> [Maybe Line]
+
+    -- No hints in empty line
+    attemptPlace [] [] = [Just []]
+    
+    -- 0 size hint in empty line
+    attemptPlace [Hint _ 0 _] [] = [Just []]
+    
+    -- We have more hints to place, but have run out of space.
+    attemptPlace hints [] = [Nothing]
+    
+    -- We have just finished placing all hints, and there is some space left.
+    -- Try to clear remaining space.
+    attemptPlace [] line = [placeClear line]
+    
+    -- We have just finished placing one hint, and its value is down to 0.
+    -- There is room for a SuggestClear in the cell to the right, so we'll place it there as padding.
+    attemptPlace ((Hint hn 0 _):hints) (Unknown:line) =
+      let
+        maybePlaceds = attemptPlace hints line
+      in
+        concatMap (\maybePlaced -> case maybePlaced of
+          Nothing -> [Nothing]
+          Just placed -> [Just (SuggestClear:placed)]
+        ) maybePlaceds
+    
+    -- We have just finished placing one hint, and its value is down to 0.
+    -- There is already a Clear in the cell to the right, so we'll keep that as padding.
+    attemptPlace ((Hint _ 0 _):hints) (Clear:line) =
+      let
+        maybePlaceds = attemptPlace hints line
+      in
+        concatMap (\maybePlaced -> case maybePlaced of
+          Nothing -> [Nothing]
+          Just placed -> [Just (Clear:placed)]
+        ) maybePlaceds
+    
+    -- We are placing a hint, and there is room.
+    -- Continue recursing after shortening the hint and remaining line.
+    attemptPlace (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
+      let
+        shortenedHint = Hint name (value - 1) False
+        maybePlaceds = attemptPlace (shortenedHint:hints) line
+      in
+        concatMap (\maybePlaced ->
+        case maybePlaced of
+          Just placed -> case isFirstCell of
+            False -> [Just ((SuggestHintName name):placed)]
+            True -> 
+              let
+                alternatives = fmap (fmap (\alt -> (SuggestClear:alt))) $ attemptPlace (hint:hints) line
+              in
+                (Just ((SuggestHintName name):placed):alternatives)
+          Nothing -> case isFirstCell of
+            False -> [Nothing]
+            True ->
+              let
+                maybePlaceds' = attemptPlace (hint:hints) line
+              in
+                concatMap (\maybePlaced' ->
+                case maybePlaced' of
+                  Nothing -> [Nothing]
+                  Just placed' -> [Just (SuggestClear:placed')]
+                ) maybePlaceds'
+        ) maybePlaceds
+    
+    -- We are placing a hint, and the cell is filled.
+    -- Continue recursing after shortening the hint and remaining line.
+    attemptPlace (hint@(Hint name value _):hints) (Filled:line) =
+      let
+        shortenedHint = Hint name (value - 1) False
+        maybePlaceds = attemptPlace (shortenedHint:hints) line
+      in
+        concatMap (\maybePlaced ->
+          case maybePlaced of
+            Nothing -> [Nothing]
+            Just placed -> [Just (Filled:placed)]
+          ) maybePlaceds
+    
+    -- We are placing a hint, but the cell is already marked Clear
+    attemptPlace ((Hint _ _ _):hints) (Clear:line) = [Nothing]
+    
+    attemptPlace hints line = errorWithoutStackTrace $ unlines $ ["<wat>"] ++ (fmap show hints) ++ ([lineToString line]) ++ ["<"]
