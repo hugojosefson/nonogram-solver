@@ -259,6 +259,9 @@ module Lib where
     untilStable :: (Eq a) => (a -> a) -> (a -> a)
     untilStable fn = until (\x -> fn x == x) fn
     
+    untilUnstable :: (Eq a) => (a -> a) -> (a -> a)
+    untilUnstable fn = until (\x -> not (fn x == x)) fn
+    
     printStrings :: [String] -> IO()
     printStrings ss = putStrLn $ unlines ss
 
@@ -327,12 +330,9 @@ module Lib where
 -- printGridMullioned $ solveGridUntilStable mRowHintss mColumnHintss mRows
 -- 
 -- We should however now continue with placing Clear in a separate run after placing Filled.
--- TODO: Do a specific run to set any Clear cells around where we have identified:
---         complete Hint
 --
--- Idea: Instead of only trying filling from left and right, try all possible places the hints can fill.
---       Then wherever no hint has been, Clear.
---       And wherever has been filled in all possible cases, Filled.
+-- Find ways to short circuit in overlapPossibilities/findPossibilities, when we find an Unknown.
+-- Alternate between solveGridUntilStable and overlapPossibilities/findPossibilities untilUnstable.
 
     reducePossibleCell :: Cell -> Cell -> Cell
     reducePossibleCell Clear Clear = Clear
