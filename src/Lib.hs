@@ -354,3 +354,8 @@ module Lib where
         chunks = (chunksOf paneSize s)
       in
         concat $ intersperse m chunks
+
+-- At least this isn't wrong:
+-- printGridMullioned  $ solveGridUntilStable mRowHintss mColumnHintss mRows
+-- 
+-- We should however now continue with placing Clear Decided in a separate run after placing Filled.
