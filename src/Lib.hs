@@ -72,10 +72,6 @@ module Lib where
     prefixWith :: a -> [a] -> [a]
     prefixWith x xs = (x:xs)
 
-    -- TODO: Don't consider Clear cells when checking overlaps.
-    -- TODO: Do a specific run to set any Clear cells around where we have identified:
-    --         complete Hint
-    
     placeFromLeft :: Hints -> Line -> Maybe Line
     
     -- No hints in empty line
@@ -352,3 +348,6 @@ module Lib where
 -- printGridMullioned $ solveGridUntilStable mRowHintss mColumnHintss mRows
 -- 
 -- We should however now continue with placing Clear Decided in a separate run after placing Filled.
+-- TODO: Do a specific run to set any Clear cells around where we have identified:
+--         complete Hint
+    
