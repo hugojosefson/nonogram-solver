@@ -300,11 +300,23 @@ module Lib where
     printGrid :: Lines -> IO() 
     printGrid rows = printStrings $ rowsToRowStrings rows
     
+    mullionString :: String -> String
+    mullionString s = mullion 5 "|" s
+
+    mullionStrings :: [String] -> [String]
+    mullionStrings ss = 
+      let
+        l = maxLength ss
+        bar = replicate l '-'
+        verticallyMullionedStrings = mullion 5 [bar] ss
+      in
+        fmap mullionString verticallyMullionedStrings
+
     printGridMullioned :: Lines -> IO()
     printGridMullioned rows = 
       let
         rowStrings = rowsToRowStrings rows
-        mullionedRows = fmap (mullion 5 "|") rowStrings
+        mullionedRows = mullionStrings rowStrings
         framed = frame mullionedRows
       in
         printStrings framed
@@ -320,11 +332,14 @@ module Lib where
       in
         printStrings $ framedRowStrings
     
+    maxLength :: (Foldable t) => [t a] -> Int
+    maxLength xss = (foldr max) 0 $ fmap length xss
+
     frame :: [String] -> [String]
     frame rowStrings =
       let
         framedRows = fmap (surroundWith "‖") rowStrings
-        framedRowLength = (foldr max) 0 $ fmap length framedRows
+        framedRowLength = maxLength framedRows
         bar = [replicate framedRowLength '=']
         framedRowStrings = surroundWith bar framedRows
       in
@@ -333,7 +348,7 @@ module Lib where
     surroundWith :: [a] -> [a] -> [a]
     surroundWith around middle = around ++ middle ++ around
     
-    mullion :: Int -> String -> String -> String
+    mullion :: Int -> [a] -> [a] -> [a]
     mullion paneSize m s =
       let
         chunks = (chunksOf paneSize s)
