@@ -154,9 +154,8 @@ module Lib where
         maybeReversedLine
     
     maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Maybe Line
-    maybeOverlaps line Nothing _ = Nothing
-    maybeOverlaps line _ Nothing = Nothing
     maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlapFill line a b)
+    maybeOverlaps line _ _ = Nothing
     
     overlapFill :: Cell -> Cell -> Cell -> Cell
     overlapFill _ Clear Clear = Clear
