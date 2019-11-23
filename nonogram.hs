@@ -290,8 +290,8 @@ untilStable fn = until (\x -> fn x == x) fn
 printGrid :: Lines -> IO() 
 printGrid rows = putStrLn $ unlines $ fmap lineToString rows
 
-printGrid' :: Lines -> IO() 
-printGrid' rows = 
+printGridFramed :: Lines -> IO() 
+printGridFramed rows = 
   let
     rowStrings = fmap lineToString rows
     framedRows = fmap (surroundWith "|") rowStrings
