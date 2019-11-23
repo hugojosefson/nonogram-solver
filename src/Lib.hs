@@ -12,8 +12,8 @@ module Lib where
 
     instance Show Cell where
       show Unknown = " "
-      show Filled = "*"
       show Clear = "."
+      show Filled = "*"
       show SuggestClear = "_"
       show (SuggestHintName (HintName a)) = show a
     
