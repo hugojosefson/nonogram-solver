@@ -75,6 +75,10 @@ placeClear (cell:line) =
     if canClearCell then fmap (\line -> ((Clear $ Requested Outer):line)) maybeClearedLine
     else Nothing
 
+-- TODO: Don't consider Clear cells when checking overlaps.
+-- TODO: Do a specific run to set any Clear cells around where we have identified:
+--         complete Hint
+
 placeFromLeft :: Hints -> Line -> Maybe Line
 
 -- No hints in empty line
