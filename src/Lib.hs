@@ -266,6 +266,7 @@ module Lib where
                                       , [1,1]
                                       ]
     
+    dRows = replicate 15 $ replicate 15 Unknown
     mRows = replicate 10 $ replicate 10 Unknown
     
     solveGrid :: [Hints] -> [Hints] -> Lines -> Lines
@@ -290,29 +291,51 @@ module Lib where
     untilStable :: (Eq a) => (a -> a) -> (a -> a)
     untilStable fn = until (\x -> fn x == x) fn
     
+    printStrings :: [String] -> IO()
+    printStrings ss = putStrLn $ unlines ss
+
+    rowsToStrings :: [Line] -> [String]
+    rowsToStrings rows = fmap lineToString rows
+
     printGrid :: Lines -> IO() 
-    printGrid rows = putStrLn $ unlines $ fmap lineToString rows
+    printGrid rows = printStrings $ rowsToRowStrings rows
     
     printGridMullioned :: Lines -> IO()
-    printGridMullioned rows = undefined
+    printGridMullioned rows = 
+      let
+        rowStrings = rowsToRowStrings rows
+        mullionedRows = fmap (mullion 5 "|") rowStrings
+        framed = frame mullionedRows
+      in
+        printStrings framed
     
+    rowsToRowStrings :: [Line] -> [String]
+    rowsToRowStrings rows = fmap lineToString rows
+
     printGridFramed :: Lines -> IO() 
     printGridFramed rows = 
       let
-        rowStrings = fmap lineToString rows
+        rowStrings = rowsToRowStrings rows
+        framedRowStrings = frame rowStrings
+      in
+        printStrings $ framedRowStrings
+    
+    frame :: [String] -> [String]
+    frame rowStrings =
+      let
         framedRows = fmap (surroundWith "‖") rowStrings
         framedRowLength = (foldr max) 0 $ fmap length framedRows
         bar = [replicate framedRowLength '=']
         framedRowStrings = surroundWith bar framedRows
       in
-        putStrLn $ unlines $ framedRowStrings
-    
+        framedRowStrings
+
     surroundWith :: [a] -> [a] -> [a]
     surroundWith around middle = around ++ middle ++ around
     
     mullion :: Int -> String -> String -> String
-    mullion paneSize mullion s =
+    mullion paneSize m s =
       let
-        chunks = chunksOf paneSize s
+        chunks = (chunksOf paneSize s)
       in
-        intersperse mullion chunks
+        concat $ intersperse m chunks
