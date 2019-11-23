@@ -1,4 +1,5 @@
 import Data.List (transpose, replicate)
+import Data.List.Split (chunksOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Read (hexDigitToInt)
 import Numeric (showHex)
@@ -290,6 +291,9 @@ untilStable fn = until (\x -> fn x == x) fn
 printGrid :: Lines -> IO() 
 printGrid rows = putStrLn $ unlines $ fmap lineToString rows
 
+printGridMullioned :: Lines -> IO()
+printGridMullioned rows = undefined
+
 printGridFramed :: Lines -> IO() 
 printGridFramed rows = 
   let
@@ -303,3 +307,10 @@ printGridFramed rows =
 
 surroundWith :: [a] -> [a] -> [a]
 surroundWith around middle = around ++ middle ++ around
+
+mullion :: Int -> String -> String -> String
+mullion paneSize mullion s =
+  let
+    chunks = chunksOf paneSize s
+  in
+    intersperse mullion chunks
