@@ -1,14 +1,19 @@
 import Numeric (showHex)
 import Data.Text.Internal.Read (hexDigitToInt)
+import Data.List (transpose, replicate)
+import Data.Maybe (fromMaybe)
 
 data Cell =
   Unknown | Filled | Clear ClearReason | ProbablyHint HintName
+  deriving (Eq)
 
 data ClearReason =
   Decided | Requested ClearLocation
+  deriving (Eq)
 
 data ClearLocation =
   Before HintName | Outer | After HintName
+  deriving (Eq)
 
 instance Show Cell where
   show Unknown = " "
@@ -34,6 +39,7 @@ charToCell c = ProbablyHint $ HintName $ hexDigitToInt c
 
 type Line = [Cell]
 type Hints = [Hint]
+type Lines = [Line]
 
 intsToHints :: [Int] -> Hints
 intsToHints [] = []
@@ -43,13 +49,13 @@ data Hint = Hint { name :: HintName
                  , value :: Int
                  , isFirstCell :: Bool
                  }
-  deriving (Read, Show, Eq)
+  deriving (Show, Eq)
 
 instance Ord Hint where
   compare h1 h2 = compare (name h1) (name h2)
 
 data HintName = HintName Int
-  deriving (Read, Eq, Ord)
+  deriving (Eq, Ord)
 
 instance Show HintName where
   show (HintName a) = showHex a ""
@@ -178,13 +184,6 @@ overlap3 _ (Clear (Requested Outer)) (Clear (Requested _)) = Clear Decided
 overlap3 _ (Clear (Requested _)) (Clear (Requested Outer)) = Clear Decided
 overlap3 c _ _ = c
 
--- *Main> fmap lineToString $ fmap markAround $ placeFromLeft  (intsToHints [2,5]) (stringToLine "       *   ")
--- Just "11[After1]0000*[After0]__"
--- *Main> fmap lineToString $ fmap markAround $ placeFromRight (intsToHints [2,5]) (stringToLine "       *   ")
--- Just "__[Before1]11[Before0]0*000"
--- *Main> fmap lineToString $ solveLine (intsToHints [2,5]) (stringToLine "       *   ")
--- Just "      **   "
-
 markAround :: Line -> Line
 markAround [] = []
 markAround ((Clear (Requested Outer)):Filled:cells) = ((Clear (Requested Outer)):Filled:(markAround cells))
@@ -203,3 +202,61 @@ solveLine hints line =
   in
     maybeOverlaps line maybeFromLeft maybeFromRight
 
+
+dRowHintss = fmap intsToHints [ [4, 1]
+                              , [1 ,5]
+                              , [3,1,3]
+                              , [4,4,2]
+                              , [1,2,6]
+                              , [2,2,2]
+                              , [3,2]
+                              , [1,2,3]
+                              , [2,5]
+                              , [7,1]
+                              , [3,1,3]
+                              , [3,1,1,2,1,1]
+                              , [4,1,1,2]
+                              , [3,2,5]
+                              , [5,2]
+                              ]
+
+dColumnHintss = fmap intsToHints [  [3]
+                                  , [3,4]
+                                  , [1,4,4]
+                                  , [1,1,2,1,1]
+                                  , [6,1,1,1]
+                                  , [3,2,1,2,2]
+                                  , [1,2,5]
+                                  , [1,1,2]
+                                  , [2,2,2]
+                                  , [4,5]
+                                  , [2,1,2,3]
+                                  , [1,5,1,1]
+                                  , [2,3,4,2]
+                                  , [3,1,3]
+                                  , [2,3]
+                                  ]
+
+dRows = replicate 15 $ replicate 15 Unknown
+
+solveGrid :: [Hints] -> [Hints] -> Lines -> Lines
+solveGrid rowHintss columnHintss rows =
+  let
+    solvedRows = solveLines rowHintss rows
+    columns = transpose solvedRows
+    solvedColumns = solveLines columnHintss columns
+  in
+    transpose solvedColumns  
+
+solveLines :: [Hints] -> Lines -> Lines
+solveLines hintss lines = zipWith fromMaybe lines (zipWith solveLine hintss lines)
+
+solveGridUntilStable :: [Hints] -> [Hints] -> Lines -> Lines
+solveGridUntilStable rowHintss columnHintss rows =
+  let
+    solveWithHintsUntilStable = untilStable $ solveGrid rowHintss columnHintss
+  in
+    solveWithHintsUntilStable rows
+
+untilStable :: (Eq a) => (a -> a) -> (a -> a)
+untilStable fn = until (\x -> fn x == x) fn
