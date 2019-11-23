@@ -356,6 +356,6 @@ module Lib where
         concat $ intersperse m chunks
 
 -- At least this isn't wrong:
--- printGridMullioned  $ solveGridUntilStable mRowHintss mColumnHintss mRows
+-- printGridMullioned $ solveGridUntilStable mRowHintss mColumnHintss mRows
 -- 
 -- We should however now continue with placing Clear Decided in a separate run after placing Filled.
