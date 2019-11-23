@@ -329,7 +329,7 @@ module Lib where
     mullion :: Int -> [a] -> [a] -> [a]
     mullion paneSize m s =
       let
-        chunks = (chunksOf paneSize s)
+        chunks = chunksOf paneSize s
       in
         concat $ intersperse m chunks
 
@@ -339,4 +339,3 @@ module Lib where
 -- We should however now continue with placing Clear in a separate run after placing Filled.
 -- TODO: Do a specific run to set any Clear cells around where we have identified:
 --         complete Hint
-    
