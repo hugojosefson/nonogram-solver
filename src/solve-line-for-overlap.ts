@@ -1,4 +1,4 @@
-import { and, displayLine, displayMaybeLine, id, just, match, nothing, repeat, s } from './fn'
+import {and, displayLine, displayMaybeLine, head, id, just, match, nothing, repeat, s, tail} from './fn'
 import {
   CLEAR,
   CLEAR_AFTER_REQUESTED,
@@ -13,12 +13,12 @@ const isOutOfBounds = (line, cellOffset, hint) => hint < 1 || cellOffset + hint 
 const hasBorderLeftOf = (line, cellOffset) => cellOffset === 0
 const hasBorderRightOf = (line, cellOffset, hint) => cellOffset + hint === line.length
 
-const hasClearOrUnknownLeftOf = (line, cellOffset, hint, hintName) =>
-  !hasBorderLeftOf(line, cellOffset, hint, hintName) &&
+const hasClearOrUnknownLeftOf = (line, cellOffset) =>
+  !hasBorderLeftOf(line, cellOffset) &&
   [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED, CLEAR_PADDING_REQUESTED].includes(line[cellOffset - 1])
 
-const hasClearOrUnknownRightOf = (line, cellOffset, hint, hintName) =>
-  !hasBorderRightOf(line, cellOffset, hint, hintName) &&
+const hasClearOrUnknownRightOf = (line, cellOffset, hint) =>
+  !hasBorderRightOf(line, cellOffset, hint) &&
   [CLEAR, UNKNOWN, CLEAR_BEFORE_REQUESTED, CLEAR_AFTER_REQUESTED, CLEAR_PADDING_REQUESTED].includes(line[cellOffset + 1])
 
 const isAvailableToPaintHint = hintName => cell => [FILLED, hintName, UNKNOWN].includes(cell)
@@ -34,8 +34,8 @@ const canClear = (line, cellOffset) =>
     .every(isAvailableToClear)
 
 export const attemptPlaceHint = (line, cellOffset, hint, hintName) => {
-  const args = [line, cellOffset, hint, hintName]
-  if (isOutOfBounds(...args)) {
+  const args = [line, cellOffset, hint, hintName];
+  if (isOutOfBounds(line, cellOffset, hint)) {
     return nothing
   }
   if (and(hasBorderLeftOf, hasBorderRightOf, canPaint)(...args)) {
@@ -94,7 +94,7 @@ const placeHintsFromLeft = ([hint, ...hints], line, cellOffset = 0, hintName = 0
   return match(
     maybeModifiedLine,
     () => placeHintsFromLeft([hint, ...hints], line, cellOffset + 1, hintName, hintNameModifier),
-    modifiedLine => placeHintsFromLeft(hints, modifiedLine, cellOffset + hint + 1, hintName + 1, hintNameModifier)
+    modifiedLine => placeHintsFromLeft([head(hints), ...tail(hints)], modifiedLine, cellOffset + hint + 1, hintName + 1, hintNameModifier)
   )
 }
 

@@ -1,6 +1,7 @@
 import { heightOfHints, repeat, widthOfHints } from './fn'
 import { UNKNOWN } from './cell'
 
+// noinspection JSSuspiciousNameCombination
 const grid = (width, height = width) =>
   Array.from(
     { length: height },

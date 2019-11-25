@@ -1,6 +1,6 @@
 import parse1LineOfHints from './parse-1-input-line-of-hints'
 
-export default input => {
+export default (input: string) => {
   if (typeof input !== 'string') {
     throw new Error('Input must be a string.')
   }

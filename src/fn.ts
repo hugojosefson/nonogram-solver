@@ -1,11 +1,12 @@
-import { UNKNOWN } from './cell'
+import {UNKNOWN} from './cell'
 
 export const id = a => a
 export const isUndefined = a => typeof a === 'undefined'
 
 export const head = array => array[0]
+export const tail = array => array.slice(1)
 
-export const and = (fn, ...fns) => {
+export const and = (fn?: Function, ...fns: Array<Function>) => {
   if (isUndefined(fn)) {
     return () => true
   }
@@ -27,6 +28,6 @@ export const heightOfGrid = grid => grid.length
 export const widthOfHints = ([horizontalHints, verticalHints]) => horizontalHints.length
 export const heightOfHints = ([horizontalHints, verticalHints]) => verticalHints.length
 
-export const repeat = (repetitions, what = UNKNOWN) => Array(repetitions).fill(what)
+export const repeat = <T>(repetitions, what: T) => Array(repetitions).fill(what || UNKNOWN)
 export const s = o => JSON.stringify(o)
 export const leftPad = (totalLength, s) => `${repeat(totalLength - s.length, ' ').join('')}${s}`
