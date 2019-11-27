@@ -131,9 +131,8 @@ module Lib where
         rHints = reverse hints
         rLine = reverse line
         maybePlacedLine = placeFromLeft rHints rLine
-        maybeReversedLine = fmap reverse maybePlacedLine
       in
-        maybeReversedLine
+        fmap reverse maybePlacedLine
     
     maybeOverlaps :: Line -> Maybe Line -> Maybe Line -> Maybe Line
     maybeOverlaps line (Just a) (Just b) = Just (zipWith3 overlapFill line a b)
