@@ -255,11 +255,11 @@ module Lib where
     mullionStrings :: [String] -> [String]
     mullionStrings ss = 
       let
-        l = maxLength ss
-        bar = replicate l '-'
         verticallyMullionedStrings = mullion 5 [bar] ss
       in
         fmap mullionString verticallyMullionedStrings
+      where
+        bar = replicate (maxLength ss) '-'
 
     printGridMullioned :: Lines -> IO()
     printGridMullioned rows = 
