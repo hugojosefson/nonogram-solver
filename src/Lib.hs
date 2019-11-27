@@ -71,6 +71,10 @@ module Lib where
     prefixWith :: a -> [a] -> [a]
     prefixWith x xs = (x:xs)
 
+    if' :: Bool -> Maybe a -> Maybe a
+    if' True x = x
+    if' False _ = Nothing
+
     placeFromLeft :: Hints -> Line -> Maybe Line
     
     -- No hints in empty line
@@ -105,10 +109,7 @@ module Lib where
       in
         case maybePlaced of
           Just placed -> Just ((SuggestHintName name):placed)
-          Nothing -> case isFirstCell of
-            False -> Nothing
-            True -> fmap (prefixWith SuggestClear) $ placeFromLeft (hint:hints) line
-    
+          Nothing -> if' isFirstCell $ fmap (prefixWith SuggestClear) $ placeFromLeft (hint:hints) line
     
     -- We are placing a hint, and the cell is filled.
     -- Continue recursing after shortening the hint and remaining line.
