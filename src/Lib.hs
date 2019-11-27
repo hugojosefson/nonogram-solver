@@ -108,7 +108,7 @@ module Lib where
         maybePlaced = placeFromLeft (shortenedHint:hints) line
       in
         case maybePlaced of
-          Just placed -> Just ((SuggestHintName name):placed)
+          Just placed -> Just $ prefixWith (SuggestHintName name) placed
           Nothing -> if' isFirstCell $ fmap (prefixWith SuggestClear) $ placeFromLeft (hint:hints) line
     
     -- We are placing a hint, and the cell is filled.
