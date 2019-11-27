@@ -104,8 +104,8 @@ module Lib where
     -- Continue recursing after shortening the hint and remaining line.
     placeFromLeft (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
       let
-        shortenedHint = Hint name (value - 1) False
-        maybePlaced = placeFromLeft (shortenedHint:hints) line
+        restHint = Hint name (value - 1) False
+        maybePlaced = placeFromLeft (restHint:hints) line
       in
         case maybePlaced of
           Just placed -> Just $ prefixWith (SuggestHintName name) placed
@@ -115,8 +115,8 @@ module Lib where
     -- Continue recursing after shortening the hint and remaining line.
     placeFromLeft (hint@(Hint name value isFirstCell):hints) (Filled:line) =
       let
-        shortenedHint = Hint name (value - 1) False
-        maybePlaced = placeFromLeft (shortenedHint:hints) line
+        restHint = Hint name (value - 1) False
+        maybePlaced = placeFromLeft (restHint:hints) line
       in
         case maybePlaced of
           Nothing -> Nothing
@@ -386,8 +386,8 @@ module Lib where
     -- Continue recursing after shortening the hint and remaining line.
     attemptPlace (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
       let
-        shortenedHint = Hint name (value - 1) False
-        maybePlaceds = attemptPlace (shortenedHint:hints) line
+        restHint = Hint name (value - 1) False
+        maybePlaceds = attemptPlace (restHint:hints) line
       in
         concatMap (\maybePlaced ->
         case maybePlaced of
@@ -415,8 +415,8 @@ module Lib where
     -- Continue recursing after shortening the hint and remaining line.
     attemptPlace (hint@(Hint name value _):hints) (Filled:line) =
       let
-        shortenedHint = Hint name (value - 1) False
-        maybePlaceds = attemptPlace (shortenedHint:hints) line
+        restHint = Hint name (value - 1) False
+        maybePlaceds = attemptPlace (restHint:hints) line
       in
         concatMap (\maybePlaced ->
           case maybePlaced of
