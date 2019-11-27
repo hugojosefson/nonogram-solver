@@ -89,24 +89,14 @@ module Lib where
     -- We have just finished placing one hint, and its value is down to 0.
     -- There is room for a SuggestClear in the cell to the right, so we'll place it there as padding.
     placeFromLeft ((Hint hn 0 _):hints) (Unknown:line) =
-      let
-        maybePlaced = placeFromLeft hints line
-      in
-        case maybePlaced of
-          Nothing -> Nothing
-          Just placed -> Just (SuggestClear:placed)
+      fmap (prefixWith SuggestClear) $ placeFromLeft hints line
     
     -- We have just finished placing one hint, and its value is down to 0.
     -- There is already a Clear in the cell to the right, so we'll keep that as padding.
     placeFromLeft ((Hint _ 0 _):hints) (Clear:line) =
-      let
-        maybePlaced = placeFromLeft hints line
-      in
-        case maybePlaced of
-          Nothing -> Nothing
-          Just placed -> Just (Clear:placed)
-    
-    -- We are placing a hint, and there is room.
+      fmap (prefixWith Clear) $ placeFromLeft hints line
+
+      -- We are placing a hint, and there is room.
     -- Continue recursing after shortening the hint and remaining line.
     placeFromLeft (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
       let
