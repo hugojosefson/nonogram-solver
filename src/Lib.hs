@@ -150,12 +150,10 @@ module Lib where
     solveLine [] line = Just line
     solveLine hints [] = Just []
     solveLine hints line =
-      let
+      maybeOverlaps line maybeFromLeft maybeFromRight
+      where
         maybeFromLeft = placeFromLeft hints line
         maybeFromRight = placeFromRight hints line
-      in
-        maybeOverlaps line maybeFromLeft maybeFromRight
-    
     
     dRowHintss = fmap intsToHints [ [4, 1]
                                   , [1 ,5]
