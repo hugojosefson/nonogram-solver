@@ -230,10 +230,9 @@ module Lib where
     
     solveGridUntilStable :: [Hints] -> [Hints] -> Lines -> Lines
     solveGridUntilStable rowHintss columnHintss rows =
-      let
+      solveWithHintsUntilStable rows
+      where
         solveWithHintsUntilStable = untilStable $ solveGrid rowHintss columnHintss
-      in
-        solveWithHintsUntilStable rows
     
     untilStable :: (Eq a) => (a -> a) -> (a -> a)
     untilStable fn = until (\x -> fn x == x) fn
