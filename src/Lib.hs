@@ -96,7 +96,7 @@ module Lib where
     placeFromLeft ((Hint _ 0 _):hints) (Clear:line) =
       fmap (prefixWith Clear) $ placeFromLeft hints line
 
-      -- We are placing a hint, and there is room.
+    -- We are placing a hint, and there is room.
     -- Continue recursing after shortening the hint and remaining line.
     placeFromLeft (hint@(Hint name value isFirstCell):hints) (Unknown:line) =
       let
@@ -107,13 +107,7 @@ module Lib where
           Just placed -> Just ((SuggestHintName name):placed)
           Nothing -> case isFirstCell of
             False -> Nothing
-            True ->
-              let
-                maybePlaced' = placeFromLeft (hint:hints) line
-              in
-                case maybePlaced' of
-                  Nothing -> Nothing
-                  Just placed' -> Just (SuggestClear:placed')
+            True -> fmap (prefixWith SuggestClear) $ placeFromLeft (hint:hints) line
     
     
     -- We are placing a hint, and the cell is filled.
