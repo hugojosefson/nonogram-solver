@@ -118,9 +118,7 @@ module Lib where
         restHint = Hint name (value - 1) False
         maybePlaced = placeFromLeft (restHint:hints) line
       in
-        case maybePlaced of
-          Nothing -> Nothing
-          Just placed -> Just (Filled:placed)
+        fmap (prefixWith Filled) maybePlaced
     
     -- We are placing a hint, but the cell is already marked Clear
     placeFromLeft ((Hint _ _ _):hints) (Clear:line) = Nothing
