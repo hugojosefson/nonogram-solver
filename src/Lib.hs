@@ -61,13 +61,12 @@ module Lib where
     placeClear :: Line -> Maybe Line
     placeClear [] = Just []
     placeClear (Clear:line) = Just (Clear:line)
-    placeClear (cell:line) =
-      let
+    placeClear (cell:line)
+      | canClearCell = fmap (prefixWith SuggestClear) maybeClearedLine
+      | otherwise = Nothing
+      where
         canClearCell = canClear cell
         maybeClearedLine = placeClear line
-      in
-        if canClearCell then fmap (prefixWith SuggestClear) maybeClearedLine
-        else Nothing
     
     prefixWith :: a -> [a] -> [a]
     prefixWith x xs = (x:xs)
