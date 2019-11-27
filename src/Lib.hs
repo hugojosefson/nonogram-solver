@@ -141,9 +141,9 @@ module Lib where
     overlapFill :: Cell -> Cell -> Cell -> Cell
     overlapFill _ Clear Clear = Clear
     overlapFill _ Filled Filled = Filled
-    overlapFill c (SuggestHintName a) (SuggestHintName b) =
-      if a == b then Filled
-      else c
+    overlapFill c (SuggestHintName a) (SuggestHintName b)
+      | a == b = Filled
+      | otherwise = c
     overlapFill c _ _ = c
     
     solveLine :: Hints -> Line -> Maybe Line
