@@ -279,7 +279,7 @@ module Lib where
         rowStrings = rowsToRowStrings rows
         framedRowStrings = frame rowStrings
       in
-        printStrings $ framedRowStrings
+        printStrings framedRowStrings
     
     maxLength :: (Foldable t) => [t a] -> Int
     maxLength xss = (foldr max) 0 $ fmap length xss
